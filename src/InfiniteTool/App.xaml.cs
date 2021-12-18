@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
+using Superintendent.Core;
 using System;
 using System.IO;
 using System.Text;
@@ -42,6 +44,9 @@ namespace InfiniteTool
         private async void Application_Startup(object sender, StartupEventArgs e)
         {
             await _host.StartAsync();
+
+            var siLogger = _host.Services.GetRequiredService<ILogger<Superintendent.Core.Tracer>>();
+            SuperintendentLog.UseLogger(siLogger);
 
             var game = _host.Services.GetRequiredService<GameContext>();
             await game.Initialize();
