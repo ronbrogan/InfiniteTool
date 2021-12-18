@@ -1,0 +1,23 @@
+﻿<Window x:Class="InfiniteTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:InfiniteTool"
+        mc:Ignorable="d"
+        Title="Infinite Tool" Height="269" Width="164">
+
+    <StackPanel Orientation="Vertical" Margin="0,0,0,3">
+        <StackPanel Orientation="Horizontal" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center" Width="auto">
+            <Label x:Name="label" Content="PID"/>
+            <Label x:Name="textBox" VerticalAlignment="Center" Content="{Binding Path=ProcessId, Mode=OneWay}"  Width="72" Height="26"/>
+        </StackPanel>
+        <Button x:Name="cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="10" Width="109" Height="33" Click="cp_Click"/>
+        <TextBlock HorizontalAlignment="Center" d:Text="Binding: C" Text="{Binding Path=CheckpointBind, Mode=OneWay,
+                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
+        <Button x:Name="revert" Content="Revert"  HorizontalAlignment="Center" Margin="10"  Width="108" Height="33" Click="revert_Click"/>
+        <TextBlock HorizontalAlignment="Center" d:Text="Binding: R" Text="{Binding Path=RevertBind, Mode=OneWay,
+                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
+    </StackPanel>
+
+</Window>
