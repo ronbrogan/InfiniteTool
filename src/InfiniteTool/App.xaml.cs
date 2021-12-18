@@ -74,9 +74,9 @@ namespace InfiniteTool
                 logger = log;
             }
 
-            public override void Write(string value)
+            public override void Write(string? value)
             {
-                logger.Debug(value);
+                logger.Information(value);
             }
 
             public override void Write(char value)

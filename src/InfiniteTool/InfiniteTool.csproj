@@ -29,18 +29,9 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
+    <PackageReference Include="Superintendent.Core" Version="0.0.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Moving this to a NuGet package -->
-    <ProjectReference Include="..\..\..\Superintendent\src\Superintendent.Core\Superintendent.Core.csproj" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <!-- Moving this to a NuGet package as well -->
-    <None Update="mombasa.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 
 </Project>
