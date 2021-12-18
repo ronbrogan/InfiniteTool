@@ -109,14 +109,14 @@ namespace InfiniteTool
 
         private unsafe void GetMainThreadInfo()
         {
-            IntPtr handle = Win32.OpenProcess(AccessPermissions.QueryInformation | AccessPermissions.VmRead, false, this.ProcessId);
+            IntPtr handle = Win32.OpenProcess(AccessPermissions.ProcessQueryInformation | AccessPermissions.ProcessVmRead, false, this.ProcessId);
             if (handle == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             var hinfBase = this.ProcessSink!.GetBaseOffset();
             var expectedThreadEntry = hinfBase + offsets.MainThreadEntry;
 
-            var tinfo = new THREAD_BASIC_INFORMATION();
+            var tinfo = new ThreadBasicInformation();
             TEB teb = default;
 
             foreach (var thread in this.RemoteProcess.Threads)
