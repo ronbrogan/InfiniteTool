@@ -1,12 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using InfiniteTool.GameInterop;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Superintendent.Core;
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace InfiniteTool
@@ -35,7 +39,10 @@ namespace InfiniteTool
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton<MainWindow>();
+                    services.AddSingleton<InfiniteOffsets>();
                     services.AddSingleton<GameContext>();
+                    services.AddSingleton<GameInstance>();
+                    services.AddSingleton<GamePersistence>();
                 })
                 .ConfigureLogging(l => l.AddSerilog(serilogLogger))
                 .Build();
@@ -43,16 +50,50 @@ namespace InfiniteTool
 
         private async void Application_Startup(object sender, StartupEventArgs e)
         {
+            await this.StartupImpl();
+        }
+
+        private async Task StartupImpl()
+        {
             await _host.StartAsync();
 
             var siLogger = _host.Services.GetRequiredService<ILogger<Superintendent.Core.Tracer>>();
             SuperintendentLog.UseLogger(siLogger);
 
-            var game = _host.Services.GetRequiredService<GameContext>();
-            await game.Initialize();
+            var game = _host.Services.GetRequiredService<GameInstance>();
+            var persistence = _host.Services.GetRequiredService<GamePersistence>();
+            game.Initialize();
+
 
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
+        }
+
+        public static void RestartAsAdmin()
+        {
+            var proc = Process.GetCurrentProcess().MainModule.FileName;
+
+            var info = new ProcessStartInfo(proc);
+            info.UseShellExecute = true;
+            info.Verb = "runas";
+
+            try
+            {
+                var asAdmin = Process.Start(info);
+                Process.GetCurrentProcess().Kill();
+            }
+            catch (Win32Exception wex)
+            {
+                if (wex.NativeErrorCode == 0x4C7/*ERROR_CANCELLED*/)
+                {
+                    MessageBox.Show("Cannot attach to the game, it's likely running as Admin and this tool is not.", "Infinite Tool Error");
+                    Process.GetCurrentProcess().Kill();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         private async void Application_Exit(object sender, ExitEventArgs e)

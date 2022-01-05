@@ -4,20 +4,97 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InfiniteTool"
+        xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         mc:Ignorable="d"
-        Title="Infinite Tool" Height="269" Width="164">
+        Title="Infinite Tool" Height="444" Width="671">
 
-    <StackPanel Orientation="Vertical" Margin="0,0,0,3">
-        <StackPanel Orientation="Horizontal" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center" Width="auto">
-            <Label x:Name="label" Content="PID"/>
-            <Label x:Name="textBox" VerticalAlignment="Center" Content="{Binding Path=ProcessId, Mode=OneWay}"  Width="72" Height="26"/>
-        </StackPanel>
-        <Button x:Name="cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="10" Width="109" Height="33" Click="cp_Click"/>
-        <TextBlock HorizontalAlignment="Center" d:Text="Binding: C" Text="{Binding Path=CheckpointBind, Mode=OneWay,
+    <Window.Resources>
+        <wpfutil:HexValConverter x:Key="HexValConverter"></wpfutil:HexValConverter>
+    </Window.Resources>
+    
+    <DockPanel Margin="0,0,0,0">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Options">
+                
+                <MenuItem Header="Auto-Attach" Icon="✔"></MenuItem>
+
+                
+            </MenuItem>
+            <MenuItem Header="About"></MenuItem>
+        </Menu>
+        <StatusBar  DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}PID: {0}">
+                            <Binding Path="Instance.ProcessId" Mode="OneWay" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+        <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <TabItem Header="Checkpoints">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                        <Button x:Name="cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: C" Text="{Binding Path=CheckpointBind, Mode=OneWay,
                           RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
-        <Button x:Name="revert" Content="Revert"  HorizontalAlignment="Center" Margin="10"  Width="108" Height="33" Click="revert_Click"/>
-        <TextBlock HorizontalAlignment="Center" d:Text="Binding: R" Text="{Binding Path=RevertBind, Mode=OneWay,
+                        <Button x:Name="revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: R" Text="{Binding Path=RevertBind, Mode=OneWay,
                           RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
-    </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
+                        <Button x:Name="dumpCp" Content="Dump" HorizontalAlignment="Center" Margin="3" />
+                    </StackPanel>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header=""></DataGridTextColumn>
+                            <DataGridTextColumn Header="Level"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Time"></DataGridTextColumn>
+                        </DataGrid.Columns>
+
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Level Selection">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ComboBox>
+                        <ComboBoxItem Content="Overworld"></ComboBoxItem>
+                        <ComboBoxItem Content="Warship"></ComboBoxItem>
+                    </ComboBox>
+                    <Button Content="Start Level" Margin="2"></Button>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="center">
+                        <Button Content="Start Level at Spawn" Margin="2"></Button>
+                        <TextBox Width="200"></TextBox>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Progression Data">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Save to File" Margin="2"></Button>
+                            <Button Content="Load from File" Margin="2"></Button>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>
+                            <Button Content="Refresh" Margin="5,0,0,0" Click="refreshPersistence_Click"></Button>
+                        </StackPanel>
+                        
+                    </DockPanel>
+                    <DataGrid IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=PersistenceEntries, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Binding="{Binding DataType}" Width="50"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Key Name" Binding="{Binding KeyName}" Width="250"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Global Value" Binding="{Binding GlobalValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Participant Value" Binding="{Binding ParticipantValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+        
+    </DockPanel>
 
 </Window>
