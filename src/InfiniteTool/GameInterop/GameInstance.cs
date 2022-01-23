@@ -3,16 +3,46 @@ using PropertyChanged;
 using Superintendent.Core.Native;
 using Superintendent.Core.Remote;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace InfiniteTool.GameInterop
 {
     [AddINotifyPropertyChangedInterface]
+    public class CheckpointData
+    {
+        public CheckpointData(string levelName, TimeSpan gameTime, byte[] checkpointData, string filename)
+        {
+            this.LevelName = levelName;
+            this.GameTime = gameTime;
+            this.Data = checkpointData;
+            this.Filename = filename;
+        }
+
+        public string LevelName { get; set; }
+        public TimeSpan GameTime { get; set; }
+        public byte[] Data { get; set; }
+        public string Filename { get; set; }
+    }
+
+    [AddINotifyPropertyChangedInterface]
     public class GameInstance
     {
+        private readonly IOffsetProvider offsetProvider;
         private readonly ILogger<GameInstance> logger;
-        private readonly InfiniteOffsets offsets;
+        private InfiniteOffsets offsets = new InfiniteOffsets();
+        private ArenaAllocator? allocator;
+        private Dictionary<InfiniteMap, nint> scenarioStringLocations = new();
+
+        public InfiniteOffsets GetCurrentOffsets() => offsets;
+
+        public ObservableCollection<CheckpointData> Checkpoints { get; private set; } = new()
+        {
+            new CheckpointData("Checkpoing save/load coming soon...", TimeSpan.FromDays(7), new byte[0], null)
+        };
 
         public RpcRemoteProcess RemoteProcess { get; }
 
@@ -26,10 +56,10 @@ namespace InfiniteTool.GameInterop
         public event EventHandler<EventArgs>? OnAttach;
         public event EventHandler<EventArgs>? BeforeDetach;
 
-        public GameInstance(InfiniteOffsets offsets, ILogger<GameInstance> logger)
+        public GameInstance(IOffsetProvider offsetProvider, ILogger<GameInstance> logger)
         {
+            this.offsetProvider = offsetProvider;
             this.logger = logger;
-            this.offsets = offsets;
             this.RemoteProcess = new RpcRemoteProcess();
         }
 
@@ -46,6 +76,115 @@ namespace InfiniteTool.GameInterop
             this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 4, stackalloc byte[] { 0x0 });
             this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 12, stackalloc byte[] { 0x3 });
         }
+
+        public void StartMap(InfiniteMap map)
+        {
+            if(this.scenarioStringLocations.TryGetValue(map, out var location))
+            {
+                this.RemoteProcess.CallFunction<nint>(this.offsets.StartMap, location);
+            }
+        }
+
+        public const int CheckpointDataSize = 0xF0000; //0xEB9E8;
+        public unsafe void SaveCheckpoint()
+        {
+            this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
+
+            var cpData = new byte[CheckpointDataSize+4];
+
+            if (cpInfo.Slot0 == 0 || cpInfo.Slot1 == 0) return;
+
+            var hash = cpInfo.CurrentSlot == 0 ? cpInfo.Hash0 : cpInfo.Hash1;
+            BitConverter.TryWriteBytes(cpData, hash);
+
+            var slotAddress = cpInfo.CurrentSlot == 0 ? cpInfo.Slot0 : cpInfo.Slot1;
+            this.RemoteProcess.ReadAt(slotAddress, cpData.AsSpan().Slice(4));
+
+            this.AddCheckpoint(cpData);
+        }
+
+        private int cp = 0;
+        public unsafe void AddCheckpoint(byte[] checkpointData, string filename = "")
+        {
+            string levelName;
+
+            fixed (byte* cpPtr = checkpointData)
+            {
+                levelName = Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(cpPtr + 12));
+            }
+
+            Checkpoints.Add(new CheckpointData(levelName, TimeSpan.FromSeconds(cp++), checkpointData, filename));
+        }
+
+        internal void InjectCheckpoint(byte[] data)
+        {
+            if (data.Length == 0) return;
+
+            this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
+
+            if (cpInfo.Slot0 == 0 || cpInfo.Slot1 == 0) return;
+
+            nint slotAddress;
+
+            if(cpInfo.CurrentSlot == 0)
+            {
+                slotAddress = cpInfo.Slot0;
+                cpInfo.Hash0 = BitConverter.ToUInt32(data, 0);
+            }
+            else
+            {
+                slotAddress = cpInfo.Slot1;
+                cpInfo.Hash1 = BitConverter.ToUInt32(data, 0);
+            }
+
+            this.RemoteProcess.WriteAt(slotAddress, data.AsSpan().Slice(4));
+            this.RemoteProcess.WriteAt(cpInfo.SlotX, data.AsSpan().Slice(4));
+
+            this.RemoteProcess.Write(this.offsets.CheckpointInfoOffset, cpInfo);
+        }
+
+        internal void ToggleCheckpointSuppression()
+        {
+            this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
+            cpInfo.SuppressCheckpoints = (byte)(cpInfo.SuppressCheckpoints == 0 ? 1 : 0);
+            this.logger.LogInformation("Checkpoint suppresion toggle to {enabled}", cpInfo.SuppressCheckpoints);
+            this.RemoteProcess.Write(this.offsets.CheckpointInfoOffset, cpInfo);
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct CheckpointInfo
+        {
+            [FieldOffset(0xC)]
+            public byte CurrentSlot;
+
+            [FieldOffset(0x10)]
+            public uint LastSaveTicks;
+
+            [FieldOffset(0x14)]
+            public byte DangerousRevertCount;
+
+            [FieldOffset(0x18)]
+            public uint LastRevertTicks;
+
+            [FieldOffset(0x20)]
+            public nint Slot0;
+
+            [FieldOffset(0x28)]
+            public nint Slot1;
+
+            [FieldOffset(0x30)]
+            public uint Hash0;
+
+            [FieldOffset(0x34)]
+            public uint Hash1;
+
+            [FieldOffset(0x50)]
+            public nint SlotX;
+
+            [FieldOffset(0x59)]
+            public byte SuppressCheckpoints;
+        }
+
 
         public void Initialize()
         {
@@ -105,10 +244,41 @@ namespace InfiniteTool.GameInterop
             logger.LogInformation("Bootstrapping for new process {PID}", this.ProcessId);
             try
             {
+                LoadOffsets();
                 GetMainThreadInfo();
                 PopulateAddresses();
+                SetupWorkspace();
             }
             catch { }
+        }
+
+        private void SetupWorkspace()
+        {
+            if (this.allocator != null)
+            {
+                try
+                {
+                    lock (this.allocator)
+                    {
+                        this.allocator.Dispose();
+                    }
+                }
+                catch { }
+            }
+
+            var allocator = new ArenaAllocator(this.RemoteProcess, 4 * 1024 * 1024); // 4MB working area
+
+            foreach(var (map,scenario) in InteropConstantData.MapScenarios)
+            {
+                scenarioStringLocations[map] = allocator.WriteString(scenario);
+            }
+        }
+
+        public void LoadOffsets()
+        {
+            var version = this.RemoteProcess.Process?.MainModule?.FileVersionInfo.FileVersion;
+
+            this.offsets = this.offsetProvider.GetOffsets(version);
         }
 
         public unsafe void PopulateAddresses()

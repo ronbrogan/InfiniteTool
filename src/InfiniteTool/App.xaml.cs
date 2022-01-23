@@ -39,7 +39,8 @@ namespace InfiniteTool
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton<MainWindow>();
-                    services.AddSingleton<InfiniteOffsets>();
+                    services.AddSingleton<Hotkeys>(s => new Hotkeys(s.GetRequiredService<MainWindow>(), s.GetRequiredService<ILogger<Hotkeys>>()));
+                    services.AddSingleton<IOffsetProvider, JsonOffsetProvider>();
                     services.AddSingleton<GameContext>();
                     services.AddSingleton<GameInstance>();
                     services.AddSingleton<GamePersistence>();
@@ -125,15 +126,15 @@ namespace InfiniteTool
                 builder.Append(value);
                 if (value == NewLine[0])
                     if (NewLine.Length == 1)
-                        Flush2Log();
+                        Flush();
                     else
                         terminatorStarted = true;
                 else if (terminatorStarted)
                     if (terminatorStarted = NewLine[1] == value)
-                        Flush2Log();
+                        Flush();
             }
 
-            private void Flush2Log()
+            private void Flush()
             {
                 if (builder.Length > NewLine.Length)
                     logger.Debug(builder.ToString());

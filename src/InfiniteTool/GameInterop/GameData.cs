@@ -20,7 +20,7 @@ namespace InfiniteTool.GameInterop
     public class InteropConstantData
     {
 
-        public static Dictionary<InfiniteMap, string> MapNames = new()
+        public static Dictionary<InfiniteMap, string> MapScenarios = new()
         {
             [InfiniteMap.Overworld] = @"levels\campaign\ring01\island01\island01",
             [InfiniteMap.WarshipGbraakon] = @"levels\campaign\ring01\dungeons\dungeon_banished_ship\dungeon_banished_ship",

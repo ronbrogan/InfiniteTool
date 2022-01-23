@@ -1,10 +1,11 @@
 ﻿using InfiniteTool.GameInterop;
 using Microsoft.Extensions.Logging;
-using mrousavy;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 
@@ -15,58 +16,49 @@ namespace InfiniteTool
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        private readonly Hotkeys hotkeys;
         private readonly ILogger<MainWindow> logger;
-        private HotKey? CheckpointHotkey;
-        private HotKey? RevertHotkey;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public string CheckpointBind { get; private set; }
         public string RevertBind { get; private set; }
+        public string KeepCpBind { get; private set; }
+        public string SuppressBind { get; private set; }
 
 
-        public List<GamePersistence.Entry> PersistenceEntries { get; private set; }
+        public List<GamePersistence.Entry> PersistenceEntries { get; private set; } = new();
 
         public GameContext Game { get; set; }
+
+        public CheckpointData SelectedCheckpoint { get; set; }
 
         public MainWindow(GameContext context, ILogger<MainWindow> logger)
         {
             InitializeComponent();
             this.Game = context;
+            this.hotkeys = new Hotkeys(this, logger);
             this.DataContext = context;
             this.logger = logger;
-
-            this.PersistenceEntries = new List<GamePersistence.Entry>()
-            {
-                new () { KeyName = "TestKeyBool", GlobalValue = 1, ParticipantValue = 0 },
-                new () { KeyName = "TestKeyByte", GlobalValue = 0x0a, ParticipantValue = 0x0a },
-                new () { KeyName = "TestKeyLong", GlobalValue = 0x123123, ParticipantValue = 0x123123 },
-            };
+            this.Loaded += MainWindow_Loaded;
         }
 
-        protected override void OnActivated(EventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            try
+            if (this.hotkeys.TryRegisterHotKey(ModifierKeys.None, Key.F9, () => this.Game.Instance.TriggerCheckpoint()))
             {
-                if(this.CheckpointHotkey == null)
-                {
-                    this.CheckpointHotkey = new HotKey(ModifierKeys.None, Key.F9, this, h => this.Game.Instance.TriggerCheckpoint());
-                    this.CheckpointBind = "Binding: F9";
-                }
+                this.CheckpointBind = "Binding: " + Hotkeys.KeyToString(ModifierKeys.None, Key.F9);
             }
-            catch { }
 
-            try
+            if (this.hotkeys.TryRegisterHotKey(ModifierKeys.None, Key.F10, () => this.Game.Instance.TriggerRevert()))
             {
-                if(this.RevertHotkey == null)
-                {
-                    this.RevertHotkey = new HotKey(ModifierKeys.None, Key.F10, this, h => this.Game.Instance.TriggerRevert());
-                    this.RevertBind = "Binding: F10";
-                }
+                this.RevertBind = "Binding: " + Hotkeys.KeyToString(ModifierKeys.None, Key.F10);
             }
-            catch { }
 
-            base.OnInitialized(e);
+            if (this.hotkeys.TryRegisterHotKey(ModifierKeys.None, Key.F11, () => this.Game.Instance.ToggleCheckpointSuppression()))
+            {
+                this.SuppressBind = "Binding: " + Hotkeys.KeyToString(ModifierKeys.None, Key.F11);
+            }
         }
 
         private void cp_Click(object sender, RoutedEventArgs e)
@@ -78,17 +70,68 @@ namespace InfiniteTool
         {
             this.Game.Instance.TriggerRevert();
         }
-
-        protected override void OnClosing(CancelEventArgs e)
+        
+        private void keepCp_Click(object sender, RoutedEventArgs e)
         {
-            this.CheckpointHotkey?.Dispose();
-            this.RevertHotkey?.Dispose();
-            base.OnClosing(e);
+            this.Game.Instance.SaveCheckpoint();
+        }
+
+        private void suppressCp_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.ToggleCheckpointSuppression();
         }
 
         private void refreshPersistence_Click(object sender, RoutedEventArgs e)
         {
             this.PersistenceEntries = this.Game.Persistence.GetAllProgress();
+        }
+
+        private void startLevel_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.StartSelectedLevel();
+        }
+
+        private void injectCp_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.InjectCheckpoint(SelectedCheckpoint.Data);
+        }
+
+        private void saveCp_Click(object sender, RoutedEventArgs e)
+        {
+            var save = new SaveFileDialog();
+            save.DefaultExt = ".infcp";
+            save.AddExtension = true;
+            save.FileName = "checkpoint.infcp";
+            if(save.ShowDialog(this) ?? false)
+            {
+                var cp = this.SelectedCheckpoint;
+                using var file = save.OpenFile();
+                file.Write(cp.Data);
+
+                this.SelectedCheckpoint.Filename = save.FileName;
+            }
+        }
+
+        private void loadCp_Click(object sender, RoutedEventArgs e)
+        {
+            var open = new OpenFileDialog();
+            open.DefaultExt = ".infcp";
+            open.AddExtension = true;
+            open.FileName = "checkpoint.infcp";
+            if (open.ShowDialog(this) ?? false)
+            {
+                using var file = open.OpenFile();
+                var cpData = new byte[GameInstance.CheckpointDataSize];
+                file.Read(cpData);
+
+                this.Game.Instance.AddCheckpoint(cpData, open.FileName);
+            }
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show($"{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location)}\r\nCopyright 2022, Helical Software, LLC.\r\n Uses open source libraries. Full details, source, and downloads found at \r\n https://github.com/ronbrogan/InfiniteTool", 
+                "About Infinite Tool");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using InfiniteTool.GameInterop.EngineDataTypes;
 using Microsoft.Extensions.Logging;
+using PropertyChanged;
 using Superintendent.Core.Remote;
 using System;
 using System.Collections.Generic;
@@ -8,24 +9,22 @@ using System.Linq;
 
 namespace InfiniteTool.GameInterop
 {
-    public class GamePersistence : INotifyPropertyChanged
+    [AddINotifyPropertyChangedInterface]
+    public class GamePersistence
     {
         private readonly GameInstance instance;
-        private readonly InfiniteOffsets offsets;
         private readonly ILogger<GamePersistence> logger;
+        private InfiniteOffsets offsets;
         private ArenaAllocator? allocator;
         private string[] persistenceKeys = InteropConstantData.PersistenceKeys.Keys.ToArray();
         private Dictionary<string, uint> stringToKeyMap = new();
         private IRemoteProcess process => this.instance.RemoteProcess;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public uint CurrentParticipantId { get; private set; }
 
-        public GamePersistence(GameInstance instance, InfiniteOffsets offsets, ILogger<GamePersistence> logger)
+        public GamePersistence(GameInstance instance, ILogger<GamePersistence> logger)
         {
             this.instance = instance;
-            this.offsets = offsets;
             this.logger = logger;
 
             this.instance.OnAttach += Instance_OnAttachHandler;
@@ -33,6 +32,7 @@ namespace InfiniteTool.GameInterop
 
         private void Instance_OnAttachHandler(object sender, EventArgs? args)
         {
+            this.offsets = this.instance.GetCurrentOffsets();
             this.Bootstrap();
         }
 

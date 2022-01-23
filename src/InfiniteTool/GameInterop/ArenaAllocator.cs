@@ -2,9 +2,24 @@
 using System;
 using System.Buffers;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace InfiniteTool.GameInterop
 {
+    public static class AllocatorExtensions
+    {
+        public static nint WriteString(this ArenaAllocator allocator, string value, Encoding? encoding = null)
+        {
+            encoding ??= Encoding.ASCII;
+
+            Span<byte> stringBytes = stackalloc byte[encoding.GetByteCount(value) + 1];
+            encoding.GetBytes(value, stringBytes);
+            var loc = allocator.Allocate(stringBytes.Length);
+            allocator.RemoteProcess.WriteAt(loc, stringBytes);
+            return loc;
+        }
+    }
+
     public class ArenaAllocator : IDisposable
     {
         public IRemoteProcess RemoteProcess { get; private set; }

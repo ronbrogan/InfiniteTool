@@ -15,10 +15,7 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 
 		public static void AddAsciiString(this BlamEngineList<nint> list, ArenaAllocator allocator, string value)
         {
-			Span<byte> keyBytes = stackalloc byte[Encoding.ASCII.GetByteCount(value) + 1];
-			Encoding.ASCII.GetBytes(value, keyBytes);
-			var loc = allocator.Allocate(keyBytes.Length);
-			allocator.RemoteProcess.WriteAt(loc, keyBytes);
+			var loc = allocator.WriteString(value);
 			list.AddValue(loc);
 		}
     }
