@@ -32,16 +32,16 @@
             <TabItem Header="Checkpoints">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                        <Button x:Name="cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
+                        <Button x:Name="bindable_cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: C" Text="{Binding Path=CheckpointBind, Mode=OneWay,
                           RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
-                        <Button x:Name="revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
+                        <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: R" Text="{Binding Path=RevertBind, Mode=OneWay,
                           RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
                         <!--<Button x:Name="keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: K" Text="{Binding Path=KeepCpBind, Mode=OneWay,
                           RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />-->
-                        <Button x:Name="toggleCheckpointSuppression" Content="Suppress CPs"  HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
+                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs"  HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: S" Text="{Binding Path=SuppressBind, Mode=OneWay,
                           RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
                     </StackPanel>

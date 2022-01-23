@@ -1,31 +1,20 @@
 ﻿using InfiniteTool.GameInterop;
+using InfiniteTool.Keybinds;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
-using System;
+using PropertyChanged;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Input;
 
 namespace InfiniteTool
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    [AddINotifyPropertyChangedInterface]
+    public partial class MainWindow : Window
     {
-        private readonly Hotkeys hotkeys;
+        public readonly Hotkeys Hotkeys;
         private readonly ILogger<MainWindow> logger;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public string CheckpointBind { get; private set; }
-        public string RevertBind { get; private set; }
-        public string KeepCpBind { get; private set; }
-        public string SuppressBind { get; private set; }
-
 
         public List<GamePersistence.Entry> PersistenceEntries { get; private set; } = new();
 
@@ -37,7 +26,7 @@ namespace InfiniteTool
         {
             InitializeComponent();
             this.Game = context;
-            this.hotkeys = new Hotkeys(this, logger);
+            this.Hotkeys = new Hotkeys(this, logger);
             this.DataContext = context;
             this.logger = logger;
             this.Loaded += MainWindow_Loaded;
@@ -45,20 +34,7 @@ namespace InfiniteTool
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (this.hotkeys.TryRegisterHotKey(ModifierKeys.None, Key.F9, () => this.Game.Instance.TriggerCheckpoint()))
-            {
-                this.CheckpointBind = "Binding: " + Hotkeys.KeyToString(ModifierKeys.None, Key.F9);
-            }
-
-            if (this.hotkeys.TryRegisterHotKey(ModifierKeys.None, Key.F10, () => this.Game.Instance.TriggerRevert()))
-            {
-                this.RevertBind = "Binding: " + Hotkeys.KeyToString(ModifierKeys.None, Key.F10);
-            }
-
-            if (this.hotkeys.TryRegisterHotKey(ModifierKeys.None, Key.F11, () => this.Game.Instance.ToggleCheckpointSuppression()))
-            {
-                this.SuppressBind = "Binding: " + Hotkeys.KeyToString(ModifierKeys.None, Key.F11);
-            }
+            KeyBinds.Initialize(this, Hotkeys);
         }
 
         private void cp_Click(object sender, RoutedEventArgs e)
@@ -133,5 +109,7 @@ namespace InfiniteTool
             MessageBox.Show($"{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location)}\r\nCopyright 2022, Helical Software, LLC.\r\n Uses open source libraries. Full details, source, and downloads found at \r\n https://github.com/ronbrogan/InfiniteTool", 
                 "About Infinite Tool");
         }
+
+        
     }
 }

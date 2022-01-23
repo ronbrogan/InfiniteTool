@@ -39,7 +39,7 @@ namespace InfiniteTool
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton<MainWindow>();
-                    services.AddSingleton<Hotkeys>(s => new Hotkeys(s.GetRequiredService<MainWindow>(), s.GetRequiredService<ILogger<Hotkeys>>()));
+                    services.AddSingleton<Hotkeys>(s => s.GetRequiredService<MainWindow>().Hotkeys);
                     services.AddSingleton<IOffsetProvider, JsonOffsetProvider>();
                     services.AddSingleton<GameContext>();
                     services.AddSingleton<GameInstance>();
