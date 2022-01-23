@@ -1,0 +1,23 @@
+﻿<Window x:Class="InfiniteTool.About"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:InfiniteTool"
+        xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
+        mc:Ignorable="d"
+        Title="About" Height="400" Width="350">
+    <Grid>
+        <TextBlock Margin="10">
+            <Run FontWeight="Bold" FontSize="16">InfiniteTool </Run>
+            <LineBreak></LineBreak>
+            <TextBlock Text="{Binding Path=AppInfo}"></TextBlock>
+            <LineBreak></LineBreak>
+            
+            <LineBreak></LineBreak>
+            <Hyperlink NavigateUri="https://github.com/ronbrogan/InfiniteTool" wpfutil:HyperlinkExtensions.IsExternal="True" >Github Repository</Hyperlink>
+            <LineBreak></LineBreak>
+            Copyright (c) 2022, Helical Software, LLC
+        </TextBlock>
+    </Grid>
+</Window>

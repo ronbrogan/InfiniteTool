@@ -33,24 +33,16 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
                         <Button x:Name="bindable_cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: C" Text="{Binding Path=CheckpointBind, Mode=OneWay,
-                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
                         <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: R" Text="{Binding Path=RevertBind, Mode=OneWay,
-                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
-                        <!--<Button x:Name="keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: K" Text="{Binding Path=KeepCpBind, Mode=OneWay,
-                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />-->
+                        <!--<Button x:Name="bindable_keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>-->
                         <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs"  HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" d:Text="Binding: S" Text="{Binding Path=SuppressBind, Mode=OneWay,
-                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
                     </StackPanel>
                     <!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <Button x:Name="saveCp" Content="Save As" HorizontalAlignment="Center" Margin="3" Click="saveCp_Click" />
                         <Button x:Name="loadCp" Content="Load From File" HorizontalAlignment="Center" Margin="3" Click="loadCp_Click" />
                         <Button x:Name="injectCp" Content="Inject" HorizontalAlignment="Center" Margin="3" Click="injectCp_Click" />
                     </StackPanel>-->
-                    <DataGrid  IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=Instance.Checkpoints}" SelectedValue="{Binding Path=SelectedCheckpoint, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                    <DataGrid  IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=Checkpoints}" SelectedValue="{Binding Path=SelectedCheckpoint}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header=""></DataGridTextColumn>
                             <DataGridTextColumn Header="Level" Binding="{Binding LevelName}" Width="250"></DataGridTextColumn>
@@ -89,7 +81,7 @@
                         </StackPanel>
                         
                     </DockPanel>
-                    <DataGrid IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=PersistenceEntries, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}">
+                    <DataGrid IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=PersistenceEntries}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Type" Binding="{Binding DataType}" Width="50"></DataGridTextColumn>
                             <DataGridTextColumn Header="Key Name" Binding="{Binding KeyName}" Width="250"></DataGridTextColumn>

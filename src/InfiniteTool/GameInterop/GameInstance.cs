@@ -39,11 +39,6 @@ namespace InfiniteTool.GameInterop
 
         public InfiniteOffsets GetCurrentOffsets() => offsets;
 
-        public ObservableCollection<CheckpointData> Checkpoints { get; private set; } = new()
-        {
-            new CheckpointData("Checkpoing save/load coming soon...", TimeSpan.FromDays(7), new byte[0], null)
-        };
-
         public RpcRemoteProcess RemoteProcess { get; }
 
         private (IntPtr handle, TEB teb) mainThread = (IntPtr.Zero, default);
@@ -86,13 +81,13 @@ namespace InfiniteTool.GameInterop
         }
 
         public const int CheckpointDataSize = 0xF0000; //0xEB9E8;
-        public unsafe void SaveCheckpoint()
+        public unsafe byte[]? SaveCheckpoint()
         {
             this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
 
             var cpData = new byte[CheckpointDataSize+4];
 
-            if (cpInfo.Slot0 == 0 || cpInfo.Slot1 == 0) return;
+            if (cpInfo.Slot0 == 0 || cpInfo.Slot1 == 0) return null;
 
             var hash = cpInfo.CurrentSlot == 0 ? cpInfo.Hash0 : cpInfo.Hash1;
             BitConverter.TryWriteBytes(cpData, hash);
@@ -100,20 +95,7 @@ namespace InfiniteTool.GameInterop
             var slotAddress = cpInfo.CurrentSlot == 0 ? cpInfo.Slot0 : cpInfo.Slot1;
             this.RemoteProcess.ReadAt(slotAddress, cpData.AsSpan().Slice(4));
 
-            this.AddCheckpoint(cpData);
-        }
-
-        private int cp = 0;
-        public unsafe void AddCheckpoint(byte[] checkpointData, string filename = "")
-        {
-            string levelName;
-
-            fixed (byte* cpPtr = checkpointData)
-            {
-                levelName = Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(cpPtr + 12));
-            }
-
-            Checkpoints.Add(new CheckpointData(levelName, TimeSpan.FromSeconds(cp++), checkpointData, filename));
+            return cpData;
         }
 
         internal void InjectCheckpoint(byte[] data)
