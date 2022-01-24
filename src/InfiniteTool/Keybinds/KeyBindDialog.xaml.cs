@@ -1,17 +1,6 @@
 ﻿using PropertyChanged;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace InfiniteTool.Keybinds
 {
@@ -35,6 +24,8 @@ namespace InfiniteTool.Keybinds
             this.DataContext = this;
             this.KeyDown += KeyBindDialog_KeyDown;
             this.KeyUp += KeyBindDialog_KeyUp;
+            this.SizeToContent = SizeToContent.WidthAndHeight;
+            this.ResizeMode = ResizeMode.NoResize;
         }
 
         private void KeyBindDialog_KeyUp(object sender, KeyEventArgs e)
@@ -66,6 +57,11 @@ namespace InfiniteTool.Keybinds
         private void KeyBindDialog_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = true;
+
+            if(committed)
+            {
+                ModifierKeys = ModifierKeys.None;
+            }
 
             committed = false;
             MainKey = 0;

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:InfiniteTool.Keybinds"
         mc:Ignorable="d"
         Title="Key Binding" Height="120" Width="200">
-    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
         <Label x:Name="label" Content="Enter New Key Binding" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <TextBox IsEnabled="False" Margin="0 0 0 8" Text="{Binding BindingString}"></TextBox>
         <Button Content="Save" Click="Button_Click" IsEnabled="{Binding CanSave}"></Button>

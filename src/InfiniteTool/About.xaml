@@ -17,7 +17,7 @@
             <LineBreak></LineBreak>
             <Hyperlink NavigateUri="https://github.com/ronbrogan/InfiniteTool" wpfutil:HyperlinkExtensions.IsExternal="True" >Github Repository</Hyperlink>
             <LineBreak></LineBreak>
-            Copyright (c) 2022, Helical Software, LLC
+            Copyright © 2022, Helical Software, LLC
         </TextBlock>
     </Grid>
 </Window>

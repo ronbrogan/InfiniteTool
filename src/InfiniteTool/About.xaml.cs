@@ -14,6 +14,7 @@ namespace InfiniteTool
             InitializeComponent();
             this.DataContext = this;
             this.SizeToContent = SizeToContent.WidthAndHeight;
+            this.ResizeMode = ResizeMode.NoResize;
         }
 
         public string AppInfo

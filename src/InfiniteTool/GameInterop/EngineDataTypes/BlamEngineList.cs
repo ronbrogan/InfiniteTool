@@ -1,5 +1,6 @@
 ﻿using Superintendent.Core.Remote;
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace InfiniteTool.GameInterop.EngineDataTypes
@@ -18,6 +19,12 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 			var loc = allocator.WriteString(value);
 			list.AddValue(loc);
 		}
+
+		public static void AddAsciiStrings(this BlamEngineList<nint> list, ArenaAllocator allocator, string[] values)
+        {
+			var locations = allocator.WriteStrings(values);
+			list.AddValues(locations);
+        }
     }
 
     public unsafe class BlamEngineList<T> where T : unmanaged
@@ -84,11 +91,43 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 			}
 		}
 
+		public T[] GetValues(int index, int count)
+        {
+			var result = new T[count];
+
+			if (typeof(T) == typeof(bit))
+			{
+				var bytes = new byte[(int)Math.Ceiling(count/8f)];
+				proc.ReadAt(this.head + index, bytes);
+
+				for(var i = 0; i < count; i++)
+                {
+					var byteIndex = Math.DivRem(i, 8, out var bitIndex);
+					result[i] = (T)(object)new bit(bytes[byteIndex], bitIndex);
+				}
+
+				return result;
+			}
+
+			proc.ReadAt(this.head + sizeof(T) * index, MemoryMarshal.AsBytes<T>(result));
+			return result;
+		}
+
 		public void AddValue(T value)
 		{
 			// TODO: bit handling
 			proc.WriteAt(this.tail, new Span<byte>(&value, sizeof(T)));
 			this.tail += sizeof(T);
+			this.SyncTo();
+		}
+
+		public void AddValues(Span<T> values)
+        {
+			var bytes = MemoryMarshal.AsBytes(values);
+
+			// TODO: bit handling
+			proc.WriteAt(this.tail, bytes);
+			this.tail += sizeof(T) * values.Length;
 			this.SyncTo();
 		}
 
@@ -105,32 +144,20 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 
 		public void SyncFrom()
 		{
-			nint val = 0;
-			var bytes = new Span<byte>(&val, sizeof(nint));
+			proc.ReadAt(this.location, out this.head);
 
-			proc.ReadAt(this.location, bytes);
-			this.head = val;
+			proc.ReadAt(this.location + sizeof(nint), out this.tail);
 
-			proc.ReadAt(this.location + sizeof(nint), bytes);
-			this.tail = val;
-
-			proc.ReadAt(this.location + sizeof(nint) + sizeof(nint), bytes);
-			this.end = val;
+			proc.ReadAt(this.location + sizeof(nint) + sizeof(nint), out this.end);
 		}
 
 		public void SyncTo()
 		{
-			nint val = 0;
-			var bytes = new Span<byte>(&val, sizeof(nint));
+			proc.WriteAt(this.location, this.head);
 
-			val = this.head;
-			proc.WriteAt(this.location, bytes);
+			proc.WriteAt(this.location + sizeof(nint), this.tail);
 
-			val = this.tail;
-			proc.WriteAt(this.location + sizeof(nint), bytes);
-
-			val = this.end;
-			proc.WriteAt(this.location + sizeof(nint) + sizeof(nint), bytes);
+			proc.WriteAt(this.location + sizeof(nint) + sizeof(nint), this.end);
 		}
 	}
 

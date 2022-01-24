@@ -53,12 +53,9 @@ namespace InfiniteTool.GameInterop
             var allocator = new ArenaAllocator(this.process, 4 * 1024 * 1024); // 4MB working area
 
             var keyList = allocator.AllocateList<nint>(persistenceKeys.Length);
-            var inList = allocator.AllocateList<nint>(persistenceKeys.Length);
 
-            foreach (var keyString in persistenceKeys)
-            {
-                inList.AddAsciiString(allocator, keyString);
-            }
+            var inList = allocator.AllocateList<nint>(persistenceKeys.Length);
+            inList.AddAsciiStrings(allocator, persistenceKeys);
 
             this.process.CallFunction<nint>(
                 this.offsets.Persistence_KeysFromStrings_Batch, 
@@ -107,11 +104,8 @@ namespace InfiniteTool.GameInterop
             lock (this.allocator)
             {
                 var keyList = allocator.AllocateList<uint>(persistenceKeys.Length);
-
-                foreach (var (str, key) in keys)
-                {
-                    keyList.AddValue(key);
-                }
+                var intKeys = keys.Select(k => k.Value).ToArray();
+                keyList.AddValues(intKeys);
 
                 var globalBools = allocator.AllocateList<bit>(persistenceKeys.Length);
                 var globalBytes = allocator.AllocateList<short>(persistenceKeys.Length);
@@ -139,7 +133,14 @@ namespace InfiniteTool.GameInterop
                 participantBytes.SyncFrom();
                 participantLongs.SyncFrom();
 
-                var keyLookup = new Dictionary<string, uint>();
+                var globalBitValues = globalBools.GetValues(0, keys.Length);
+                var participantBitValues = participantBools.GetValues(0, keys.Length);
+
+                var globalByteValues = globalBytes.GetValues(0, keys.Length);
+                var participantByteValues = participantBytes.GetValues(0, keys.Length);
+
+                var globalLongValues = globalLongs.GetValues(0, keys.Length);
+                var participantLongValues = participantLongs.GetValues(0, keys.Length);
 
                 var results = new List<Entry>(keys.Length);
 
@@ -150,17 +151,17 @@ namespace InfiniteTool.GameInterop
 
                     uint globalValue = type switch
                     {
-                        PersistenceValueType.Boolean => (uint)globalBools.GetValue(i),
-                        PersistenceValueType.Byte => (uint)globalBytes.GetValue(i),
-                        PersistenceValueType.Long => globalLongs.GetValue(i),
+                        PersistenceValueType.Boolean => (uint)globalBitValues[i],
+                        PersistenceValueType.Byte => (uint)globalByteValues[i],
+                        PersistenceValueType.Long => globalLongValues[i],
                         _ => 0,
                     };
 
                     uint participantValue = type switch
                     {
-                        PersistenceValueType.Boolean => (uint)participantBools.GetValue(i),
-                        PersistenceValueType.Byte => (uint)participantBytes.GetValue(i),
-                        PersistenceValueType.Long => participantLongs.GetValue(i),
+                        PersistenceValueType.Boolean => (uint)participantBitValues[i],
+                        PersistenceValueType.Byte => (uint)participantByteValues[i],
+                        PersistenceValueType.Long => participantLongValues[i],
                         _ => 0,
                     };
 

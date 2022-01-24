@@ -18,6 +18,37 @@ namespace InfiniteTool.GameInterop
             allocator.RemoteProcess.WriteAt(loc, stringBytes);
             return loc;
         }
+
+        public static nint[] WriteStrings(this ArenaAllocator allocator, string[] values, Encoding? encoding = null)
+        {
+            encoding ??= Encoding.ASCII;
+
+            var bufSize = 0;
+
+            foreach(var value in values)
+            {
+                bufSize += encoding.GetByteCount(value) + 1;
+            }
+
+            var loc = allocator.Allocate(bufSize);
+
+            var current = 0;
+            var buf = new byte[bufSize].AsSpan();
+
+            var i = 0;
+            var locations = new nint[values.Length];
+
+            foreach(var value in values)
+            {
+                locations[i] = loc + current;
+                current += encoding.GetBytes(value, buf.Slice(current));
+                current++;
+                i++;
+            }
+
+            allocator.RemoteProcess.WriteAt(loc, buf);
+            return locations;
+        }
     }
 
     public class ArenaAllocator : IDisposable

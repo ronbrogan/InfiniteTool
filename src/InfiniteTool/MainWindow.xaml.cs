@@ -3,8 +3,7 @@ using InfiniteTool.Keybinds;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using PropertyChanged;
-using System.Diagnostics;
-using System.Reflection;
+using System.IO;
 using System.Windows;
 
 namespace InfiniteTool
@@ -74,6 +73,7 @@ namespace InfiniteTool
             save.DefaultExt = ".infcp";
             save.AddExtension = true;
             save.FileName = "checkpoint.infcp";
+            save.Filter = "Infinite Checkpoint Files (*.infcp) | *.infcp";
             if(save.ShowDialog(this) ?? false)
             {
                 var cp = this.Game.SelectedCheckpoint;
@@ -90,6 +90,7 @@ namespace InfiniteTool
             open.DefaultExt = ".infcp";
             open.AddExtension = true;
             open.FileName = "checkpoint.infcp";
+            open.Filter = "Infinite Checkpoint Files (*.infcp) | *.infcp";
             if (open.ShowDialog(this) ?? false)
             {
                 using var file = open.OpenFile();
@@ -100,10 +101,37 @@ namespace InfiniteTool
             }
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        private void aboutMenu_Click(object sender, RoutedEventArgs e)
         {
             var about = new About();
             about.Show();
+        }
+
+        private void saveProgression_Click(object sender, RoutedEventArgs e)
+        {
+            var save = new SaveFileDialog();
+            save.DefaultExt = ".infprog";
+            save.AddExtension = true;
+            save.FileName = "progress.infprog";
+            save.DereferenceLinks = false;
+            save.Filter = "Infinite Progress Files (*.infprog) | *.infprog";
+            if (save.ShowDialog(this) ?? false)
+            {
+                using var file = save.OpenFile();
+                using var writer = new StreamWriter(file);
+                writer.WriteLine("InfiniteProgressV1");
+                writer.WriteLine($"ParticipantID:0x{this.Game.Persistence.CurrentParticipantId:X}");
+                writer.WriteLine("KeyName,DataType,GlobalValue,ParticipantValue");
+                foreach (var entry in this.Game.PersistenceEntries)
+                {
+                    writer.WriteLine($"{entry.KeyName},{entry.DataType},0x{entry.GlobalValue:X},0x{entry.ParticipantValue:X}");
+                }
+            }
+        }
+
+        private void speedrunPostLights_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

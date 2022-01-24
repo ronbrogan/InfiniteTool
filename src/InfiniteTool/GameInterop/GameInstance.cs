@@ -1,13 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using InfiniteTool.GameInterop.EngineDataTypes;
+using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Superintendent.Core.Native;
 using Superintendent.Core.Remote;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace InfiniteTool.GameInterop
 {
@@ -132,41 +131,6 @@ namespace InfiniteTool.GameInterop
             this.logger.LogInformation("Checkpoint suppresion toggle to {enabled}", cpInfo.SuppressCheckpoints);
             this.RemoteProcess.Write(this.offsets.CheckpointInfoOffset, cpInfo);
         }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct CheckpointInfo
-        {
-            [FieldOffset(0xC)]
-            public byte CurrentSlot;
-
-            [FieldOffset(0x10)]
-            public uint LastSaveTicks;
-
-            [FieldOffset(0x14)]
-            public byte DangerousRevertCount;
-
-            [FieldOffset(0x18)]
-            public uint LastRevertTicks;
-
-            [FieldOffset(0x20)]
-            public nint Slot0;
-
-            [FieldOffset(0x28)]
-            public nint Slot1;
-
-            [FieldOffset(0x30)]
-            public uint Hash0;
-
-            [FieldOffset(0x34)]
-            public uint Hash1;
-
-            [FieldOffset(0x50)]
-            public nint SlotX;
-
-            [FieldOffset(0x59)]
-            public byte SuppressCheckpoints;
-        }
-
 
         public void Initialize()
         {
