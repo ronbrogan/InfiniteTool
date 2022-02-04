@@ -1,5 +1,7 @@
 ﻿using InfiniteTool.WPF;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -8,17 +10,16 @@ namespace InfiniteTool.Keybinds
 {
     public static class KeyBinds
     {
-        private static Dictionary<string, (ModifierKeys mods, Key key)> bindings = new()
-        {
-            ["cp"] = (ModifierKeys.None, Key.F9),
-            ["revert"] = (ModifierKeys.None, Key.F10),
-            ["toggleCheckpointSuppression"] = (ModifierKeys.None, Key.F11)
-        };
+        private const string BindingConfigFile = "keybinds.cfg";
+
+        private static Dictionary<string, (ModifierKeys mods, Key key)> bindings = new();
 
         private static ModifierKeys NoRepeat = (ModifierKeys)0x4000;
 
         public static void Initialize(Window window, Hotkeys hotkeys)
         {
+            LoadBindings();
+
             var bindables = window.FindChildren<Button>(b => b.Name.StartsWith("bindable_"));
             var ctxMenu = BuildMenu();
 
@@ -61,10 +62,13 @@ namespace InfiniteTool.Keybinds
             var bindable = FindClickedItem(sender);
             if (bindable != null && bindable.Tag is BindableInfo info)
             {
-                if (info.Bindings.TryGetValue(bindable.Name.Substring("bindable_".Length), out var binding))
+                var bindableName = bindable.Name.Substring("bindable_".Length);
+                if (info.Bindings.TryGetValue(bindableName, out var binding))
                 {
                     info.Hotkeys.UnregisterHotKey(binding.mods, binding.key);
                     bindable.Content = info.Text;
+                    info.Bindings.Remove(bindableName);
+                    SaveBindings();
                 }
             }
         }
@@ -89,6 +93,7 @@ namespace InfiniteTool.Keybinds
                     {
                         bindable.Content = info.Text + " <" + Hotkeys.KeyToString(dialog.ModifierKeys, dialog.MainKey) + ">";
                         info.Bindings[bindableName] = (dialog.ModifierKeys, dialog.MainKey);
+                        SaveBindings();
                     }
                 }
             }
@@ -123,6 +128,42 @@ namespace InfiniteTool.Keybinds
             public string? Text { get; set; }
             public Hotkeys Hotkeys { get; set; }
             public Dictionary<string, (ModifierKeys mods, Key key)> Bindings { get; set; }
+        }
+
+        private static void LoadBindings()
+        {
+            try
+            {
+                var lines = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, BindingConfigFile));
+
+                foreach(var line in lines)
+                {
+                    var parts = line.Split("|");
+                    bindings[parts[0]] = ((ModifierKeys)Convert.ToInt32(parts[1]), (Key)Convert.ToInt32(parts[2]));
+                }
+            }
+            catch 
+            {
+                bindings["cp"] = (ModifierKeys.None, Key.F9);
+                bindings["revert"] = (ModifierKeys.None, Key.F10);
+                bindings["toggleCheckpointSuppression"] = (ModifierKeys.None, Key.F11);
+            }
+        }
+
+        private static void SaveBindings()
+        {
+            try
+            {
+                var lines = new List<string>();
+
+                foreach (var (name, bindInfo) in bindings)
+                {
+                    lines.Add($"{name}|{(int)bindInfo.mods}|{(int)bindInfo.key}");
+                }
+
+                File.WriteAllLines(Path.Combine(Environment.CurrentDirectory, BindingConfigFile), lines);
+            }
+            catch { }
         }
     }
 }

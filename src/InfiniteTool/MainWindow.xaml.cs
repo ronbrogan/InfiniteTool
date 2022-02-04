@@ -1,8 +1,11 @@
-﻿using InfiniteTool.GameInterop;
+﻿using InfiniteTool.Formats;
+using InfiniteTool.GameInterop;
 using InfiniteTool.Keybinds;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using PropertyChanged;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 
@@ -118,20 +121,48 @@ namespace InfiniteTool
             if (save.ShowDialog(this) ?? false)
             {
                 using var file = save.OpenFile();
-                using var writer = new StreamWriter(file);
-                writer.WriteLine("InfiniteProgressV1");
-                writer.WriteLine($"ParticipantID:0x{this.Game.Persistence.CurrentParticipantId:X}");
-                writer.WriteLine("KeyName,DataType,GlobalValue,ParticipantValue");
-                foreach (var entry in this.Game.PersistenceEntries)
-                {
-                    writer.WriteLine($"{entry.KeyName},{entry.DataType},0x{entry.GlobalValue:X},0x{entry.ParticipantValue:X}");
-                }
+                var progress = new ProgressionData(this.Game.Persistence.CurrentParticipantId, this.Game.PersistenceEntries);
+                progress.Write(file);
+            }
+        }
+
+        private void loadProgression_Click(object sender, RoutedEventArgs e)
+        {
+            var open = new OpenFileDialog();
+            open.DefaultExt = ".infprog";
+            open.AddExtension = true;
+            open.FileName = "progress.infprog";
+            open.DereferenceLinks = false;
+            open.Filter = "Infinite Progress Files (*.infprog) | *.infprog";
+            if (open.ShowDialog(this) ?? false)
+            {
+                using var file = open.OpenFile();
+                var data = ProgressionData.FromStream(file);
+
+                if (data == null) return;
+
+                this.Game.Persistence.SetProgress(data.Entries);
             }
         }
 
         private void speedrunPostLights_Click(object sender, RoutedEventArgs e)
         {
+            var gameVersion = Game.Instance.GetGameVersion();
+            if (gameVersion == null) return;
 
+            var progPath = Path.Combine(Environment.CurrentDirectory, "Data", gameVersion, "lightskip.infprog");
+            if (!File.Exists(progPath)) return;
+
+            var file = File.OpenRead(progPath);
+            var data = ProgressionData.FromStream(file);
+            if (data == null) return;
+
+            this.Game.Persistence.SetProgress(data.Entries);
+        }
+
+        private void openLogLocation_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer.exe", string.Format("/select,\"{0}\"", App.LogLocation));
         }
     }
 }

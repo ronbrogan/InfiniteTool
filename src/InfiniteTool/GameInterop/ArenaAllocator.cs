@@ -70,7 +70,7 @@ namespace InfiniteTool.GameInterop
 
             // ArrayPool will give us at least the bytes we ask for, tending towards 2^N, so we'll just use that
             this.size = this.localCopy.Length;
-            this.allocationBase = remoteProcess.Allocate(size);
+            this.allocationBase = remoteProcess.Allocate(this.size);
             this.freeSpot = this.allocationBase;
         }
 

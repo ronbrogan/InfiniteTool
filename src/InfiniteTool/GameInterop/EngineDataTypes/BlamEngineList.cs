@@ -34,6 +34,7 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 		nint head;
 		nint tail;
 		nint end;
+		nint count;
 
 		public nint Address => location;
 
@@ -121,11 +122,32 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 			this.SyncTo();
 		}
 
+		/// <summary>
+		/// Add the values to the list. !! When adding bits, it will add at the next byte, not the next bit !!
+		/// </summary>
+		/// <param name="values"></param>
 		public void AddValues(Span<T> values)
         {
-			var bytes = MemoryMarshal.AsBytes(values);
+			Span<byte> bytes;
+			if(typeof(T) == typeof(bit))
+            {
+				// TODO: implement proper bit-level appending?
 
-			// TODO: bit handling
+				bytes = new byte[(int)Math.Ceiling(values.Length / 8f)];
+
+				for (var i = 0; i < count; i++)
+				{
+					var bit = (bit)(object)values[i];
+
+					var byteIndex = Math.DivRem(i, 8, out var bitIndex);
+					bytes[byteIndex] = bit.Set(bytes[byteIndex], bitIndex);					
+				}
+            }
+			else
+            {
+				bytes = MemoryMarshal.AsBytes(values);
+			}
+
 			proc.WriteAt(this.tail, bytes);
 			this.tail += sizeof(T) * values.Length;
 			this.SyncTo();
@@ -149,6 +171,8 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 			proc.ReadAt(this.location + sizeof(nint), out this.tail);
 
 			proc.ReadAt(this.location + sizeof(nint) + sizeof(nint), out this.end);
+
+			proc.ReadAt(this.location + sizeof(nint) + sizeof(nint) + sizeof(nint), out this.count);
 		}
 
 		public void SyncTo()
@@ -159,6 +183,8 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 
 			proc.WriteAt(this.location + sizeof(nint) + sizeof(nint), this.end);
 		}
+
+		public static implicit operator nint(BlamEngineList<T> list) => list.Address;
 	}
 
 	public struct bit
@@ -174,6 +200,15 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 		{
 			this.Value = ((value >> index) & 0x1) == 0x1;
 		}
+
+		public byte Set(byte value, int index)
+        {
+			if (!this.Value) return value;
+
+			value |= (byte)(0x1 << index);
+
+			return value;
+        }
 
 		public static implicit operator bit(bool value) => new bit(value);
 		public static implicit operator bool(bit value) => value.Value;

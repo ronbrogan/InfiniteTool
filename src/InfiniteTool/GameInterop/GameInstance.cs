@@ -30,6 +30,7 @@ namespace InfiniteTool.GameInterop
     [AddINotifyPropertyChangedInterface]
     public class GameInstance
     {
+        private const string LatestVersion = "6.10021.10921.0";
         private readonly IOffsetProvider offsetProvider;
         private readonly ILogger<GameInstance> logger;
         private InfiniteOffsets offsets = new InfiniteOffsets();
@@ -60,7 +61,8 @@ namespace InfiniteTool.GameInterop
         internal void TriggerRevert()
         {
             this.logger.LogInformation("Revert requested");
-            this.RemoteProcess.Write(this.RevertFlagOffset, stackalloc byte[] { 0x22 });
+            //this.RemoteProcess.Write(this.RevertFlagOffset, stackalloc byte[] { 0x22 });
+            this.RemoteProcess.CallFunction<nint>(this.offsets.GameRevert);
         }
 
         internal void TriggerCheckpoint()
@@ -75,7 +77,8 @@ namespace InfiniteTool.GameInterop
         {
             if(this.scenarioStringLocations.TryGetValue(map, out var location))
             {
-                this.RemoteProcess.CallFunction<nint>(this.offsets.StartMap, location);
+                this.logger.LogInformation("Starting map {map}//{location}", map, location);
+                this.RemoteProcess.CallFunction<nint>(this.offsets.StartLevel, location);
             }
         }
 
@@ -220,11 +223,15 @@ namespace InfiniteTool.GameInterop
             }
         }
 
+        public string GetGameVersion()
+        {
+            // TODO: winstore version on the exe is not available, need to find a reliable source of version info to not have latest version hardcoded for winstore fallback
+            return this.RemoteProcess.Process?.MainModule?.FileVersionInfo.FileVersion ?? LatestVersion;
+        }
+
         public void LoadOffsets()
         {
-            var version = this.RemoteProcess.Process?.MainModule?.FileVersionInfo.FileVersion;
-
-            this.offsets = this.offsetProvider.GetOffsets(version);
+            this.offsets = this.offsetProvider.GetOffsets(GetGameVersion());
         }
 
         public unsafe void PopulateAddresses()
@@ -252,26 +259,46 @@ namespace InfiniteTool.GameInterop
 
             foreach (var thread in this.RemoteProcess.Threads)
             {
-
                 var thandle = Win32.OpenThread(ThreadAccess.QUERY_INFORMATION, false, (uint)thread.Id);
 
                 if (thandle == IntPtr.Zero)
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                {
+                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning");
+                }
 
                 var entry = new IntPtr();
                 var hr = Win32.NtQueryInformationThread(thandle, ThreadInformationClass.ThreadQuerySetWin32StartAddress, ref entry, Marshal.SizeOf(entry), out var entryReq);
                 if (hr != 0)
-                    throw new Win32Exception(hr);
-
-                if (entry != expectedThreadEntry)
                 {
+                    Win32.CloseHandle(thandle);
+                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning, start address query {hr}", hr);
                     continue;
                 }
 
+                logger.LogInformation($"Inspecting TID: {thread.Id,5:x}, start: {entry:x}, expect: {expectedThreadEntry:x}");
+
+                if (entry != expectedThreadEntry)
+                {
+                    Win32.CloseHandle(thandle);
+                    continue;
+                }
 
                 hr = Win32.NtQueryInformationThread(thandle, ThreadInformationClass.ThreadBasicInformation, ref tinfo, Marshal.SizeOf(tinfo), out var tinfoReq);
                 if (hr != 0)
-                    throw new Win32Exception(hr);
+                {
+                    Win32.CloseHandle(thandle);
+                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning, TBI query {hr}", hr);
+                    continue;
+                }
+
+                if(tinfo.TebBaseAddress == IntPtr.Zero)
+                {
+                    Win32.CloseHandle(thandle);
+                    logger.LogWarning($"TEB base address from discovered thread was zero, TID:{thread.Id,5:x}, start: {entry:x}");
+                    continue;
+                }
+
+                logger.LogInformation($"Reading TEB for TID: {thread.Id,5:x}, start: {entry:x}, teb: {tinfo.TebBaseAddress}");
 
                 this.RemoteProcess.ReadAt(tinfo.TebBaseAddress, out teb);
 
@@ -280,11 +307,8 @@ namespace InfiniteTool.GameInterop
                 logger.LogInformation($"TID: {thread.Id,5:x}, ENTRY: {entry:x16}, TEB: {tinfo.TebBaseAddress:x16}, TLS Expansion: {teb.TlsExpansionSlots:x16}");
 
                 Win32.CloseHandle(thandle);
+                break;
             }
-
-            var checkpoint = ReadMainTebPointer(304);
-
-            logger.LogInformation($"Checkpoint: {checkpoint:x16}");
 
             Win32.CloseHandle(handle);
         }

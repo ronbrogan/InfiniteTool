@@ -1,0 +1,37 @@
+{
+  "MainThreadEntry": "0xBECAF8", // manual discovery via breakpoint in checkpoint fn
+  "Checkpoint_TlsIndexOffset": "0x41C9748",
+  "RevertFlagOffset": "0x3B68950",
+  "CheckpointInfoOffset": "0x415A450",
+  "PlayerDatum_TlsIndexOffset": "0x0442A098", // manual discovery, player_datum: null,
+  "ParticipantDatum_TlsIndexOffset": "0x442D398", // manual discovery, class i343::Participant::ParticipantDatum
+  "PersistenceUnknown_TlsIndexOffset": "0x41CB350", // manual discovery, reference from persitence method
+  "PersistenceUnknown2_TlsIndexOffset": "0x41C8EE0", // manual discovery, deep within Persistence_BatchSetByteKeys, third call ,last call ,2nd to last call, only call
+  "PersistenceData_TlsIndexOffset": "0x44B4BC0", // manual discovery
+
+  "Persistence_BatchTryCreateKeysFromStrings": "0xa9a014",
+  "Persistence_BatchGetKeyTypes": "0xa99024",
+  "Persistence_BatchGetBoolKeys": "0x257978c",
+  "Persistence_BatchGetByteKeys": "0xa99848",
+  "Persistence_BatchGetLongKeys": "0x257a5c0",
+  "Persistence_BatchGetBoolKeysForParticipant": "0x2579e7c",
+  "Persistence_BatchGetByteKeysForParticipant": "0xa9977c",
+  "Persistence_BatchGetLongKeysForParticipant": "0x2579488",
+  "Persistence_BatchSetBoolKeys": "0x257a8d0",
+  "Persistence_BatchSetByteKeys": "0x25792d8",
+  "Persistence_BatchSetLongKeys": "0x257ad28",
+  "Persistence_BatchSetBoolKeysForParticipant": "0x2579d34",
+  "Persistence_BatchSetByteKeysForParticipant": "0x257a2c4",
+  "Persistence_BatchSetLongKeysForParticipant": "0x2579660",
+  "Persistence_BatchRemoveBoolKeyOverrides": "0x257abd4",
+  "Persistence_BatchRemoveByteKeyOverrides": "0x2579184",
+  "Persistence_BatchRemoveLongKeyOverrides": "0x257aa80",
+  "Persistence_BatchRemoveBoolKeyOverrideForParticipant": "0x2578e74",
+  "Persistence_BatchRemoveByteKeyOverrideForParticipant": "0x257992c",
+  "Persistence_BatchRemoveLongKeyOverrideForParticipant": "0x2578a50",
+  "Player_SaveLoadoutToPersistentStorage": "0x25ec7d4",
+  "StartLevel": "0x230770c",
+  "StartLevelAtSpawn": "0x2307774",
+  "ResetLevelAtSpawn": "0x23075b0",
+  "game_revert": "0x20bb748"
+}

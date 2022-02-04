@@ -35,7 +35,7 @@ namespace InfiniteTool
             ["Silent Auditorium"] = InfiniteMap.SilentAuditorium,
         };
 
-        public List<GamePersistence.Entry> PersistenceEntries { get; private set; } = new();
+        public List<GamePersistence.ProgressionEntry> PersistenceEntries { get; private set; } = new();
 
         public ObservableCollection<CheckpointData> Checkpoints { get; private set; } = new()
         {

@@ -15,6 +15,8 @@
     <Content Include="Data\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Remove="Data\6.10021.10921.0\GbraakenCoilLaunch.infprog" />
+    <None Remove="Data\6.10021.11755.0\offsets.json" />
     <Content Include="infinity.ico" />
   </ItemGroup>
 
@@ -32,7 +34,7 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-    <PackageReference Include="Superintendent.Core" Version="0.0.2-localpreview14" />
+    <PackageReference Include="Superintendent.Core" Version="0.0.2.1" />
   </ItemGroup>
 
 

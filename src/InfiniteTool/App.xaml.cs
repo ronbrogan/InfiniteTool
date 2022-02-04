@@ -9,6 +9,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,10 +23,12 @@ namespace InfiniteTool
     {
         private IHost _host;
 
+        public static string LogLocation = Path.Combine(Environment.CurrentDirectory, "log.txt");
+
         public App()
         {
             var serilogLogger = new LoggerConfiguration()
-                .WriteTo.File("log.txt")
+                .WriteTo.File(LogLocation)
                 .CreateLogger();
 
             AppDomain.CurrentDomain.FirstChanceException += (s, e) =>
@@ -34,6 +37,9 @@ namespace InfiniteTool
             };
 
             Console.SetOut(new TextWriterLogger(serilogLogger));
+
+            serilogLogger.Information("AppInfo: " + Assembly.GetExecutingAssembly().ToString());
+            
 
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices(services =>

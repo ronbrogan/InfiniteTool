@@ -6,19 +6,30 @@
   "PlayerDatum_TlsIndexOffset": "0x0442A098", // manual discovery, player_datum: null,
   "ParticipantDatum_TlsIndexOffset": "0x442D398", // manual discovery, class i343::Participant::ParticipantDatum
   "PersistenceUnknown_TlsIndexOffset": "0x41CB350", // manual discovery, reference from persitence method
+  "PersistenceUnknown2_TlsIndexOffset": "0x41C8EE0", // manual discovery
   "PersistenceData_TlsIndexOffset": "0x44B4BC0", // manual discovery
-  "Persistence_KeysFromStrings_Batch": "0xA9A104", // first function call in imp
-  "Persistence_GetKeyTypes_Batch": "0xA99114", // first function call in imp
-  "Persistence_GetBools_Batch": "0x2579778", // first function call in imp
-  "Persistence_GetBytes_Batch": "0xA99938", // first function call in imp
-  "Persistence_GetLongs_Batch": "0x257A5AC", // first function call in imp
-  "Persistence_GetBoolsForParticipant_Batch": "0x2579E68", // first function call in imp
-  "Persistence_GetBytesForParticipant_Batch": "0xA9986C", // first function call in imp
-  "Persistence_GetLongsForParticipant_Batch": "0x2579474", // first function call in imp
-  "Persistence_SetBoolsForParticipant_Batch": "0x2579D20", // first function call in imp
-  "Persistence_SetBytesForParticipant_Batch": "0x257A2B0", // first function call in imp
-  "Persistence_SetLongsForParticipant_Batch": "0x257964C", // first function call in imp
-  "StartMap": "0x0",
-  "StartMapAtSpawn": "0x0",
-  "RestartMapAtSpawn": "0x0"
+
+  "Persistence_BatchTryCreateKeysFromStrings": "0xa9a104",
+  "Persistence_BatchGetKeyTypes": "0xa99114",
+  "Persistence_BatchGetBoolKeys": "0x2579778",
+  "Persistence_BatchGetByteKeys": "0xa99938",
+  "Persistence_BatchGetLongKeys": "0x257a5ac",
+  "Persistence_BatchGetBoolKeysForParticipant": "0x2579e68",
+  "Persistence_BatchGetByteKeysForParticipant": "0xa9986c",
+  "Persistence_BatchGetLongKeysForParticipant": "0x2579474",
+  "Persistence_BatchSetBoolKeys": "0x257a8bc",
+  "Persistence_BatchSetByteKeys": "0x25792c4",
+  "Persistence_BatchSetLongKeys": "0x257ad14",
+  "Persistence_BatchSetBoolKeysForParticipant": "0x2579d20",
+  "Persistence_BatchSetByteKeysForParticipant": "0x257a2b0",
+  "Persistence_BatchSetLongKeysForParticipant": "0x257964c",
+  "Persistence_BatchRemoveBoolKeyOverrides": "0x257abc0",
+  "Persistence_BatchRemoveByteKeyOverrides": "0x2579170",
+  "Persistence_BatchRemoveLongKeyOverrides": "0x257aa6c",
+  "Persistence_BatchRemoveBoolKeyOverrideForParticipant": "0x2578e60",
+  "Persistence_BatchRemoveByteKeyOverrideForParticipant": "0x2579918",
+  "Persistence_BatchRemoveLongKeyOverrideForParticipant": "0x2578a3c",
+  "StartLevel": "0x230756c",
+  "StartLevelAtSpawn": "0x23075d4",
+  "ResetLevelAtSpawn": "0x2307410"
 }

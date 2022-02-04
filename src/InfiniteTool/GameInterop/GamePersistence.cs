@@ -16,6 +16,7 @@ namespace InfiniteTool.GameInterop
         private readonly ILogger<GamePersistence> logger;
         private InfiniteOffsets offsets;
         private ArenaAllocator? allocator;
+        private bool NeedsReBootstrapped = false;
         private string[] persistenceKeys = InteropConstantData.PersistenceKeys.Keys.ToArray();
         private Dictionary<string, uint> stringToKeyMap = new();
         private IRemoteProcess process => this.instance.RemoteProcess;
@@ -38,6 +39,8 @@ namespace InfiniteTool.GameInterop
 
         public void Bootstrap()
         {
+            this.NeedsReBootstrapped = false;
+
             if (this.allocator != null)
             {
                 try
@@ -58,7 +61,7 @@ namespace InfiniteTool.GameInterop
             inList.AddAsciiStrings(allocator, persistenceKeys);
 
             this.process.CallFunction<nint>(
-                this.offsets.Persistence_KeysFromStrings_Batch, 
+                this.offsets.Persistence_BatchTryCreateKeysFromStrings, 
                 0x0, 
                 keyList.Address, 
                 inList.Address);
@@ -72,6 +75,7 @@ namespace InfiniteTool.GameInterop
                 this.logger.LogWarning($"Mismatch of string to key results, sent {persistenceKeys.Length}, got back {items}");
             }
 
+            stringToKeyMap.Clear();
             for (var i = 0; i < items; i++)
             {
                 var val = keyList.GetValue(i);
@@ -85,6 +89,7 @@ namespace InfiniteTool.GameInterop
                 else
                 {
                     this.logger.LogWarning($"Miss on string to key, sent '{persistenceKeys[i]}', got back {val:x16}");
+                    this.NeedsReBootstrapped = true;
                 }
             }
 
@@ -93,9 +98,19 @@ namespace InfiniteTool.GameInterop
             this.allocator = allocator;
         }
 
-        public List<Entry> GetAllProgress()
+        private void EnsureBoostrapped()
         {
-            if (this.allocator == null) return new List<Entry>();
+            if(this.NeedsReBootstrapped)
+            {
+                this.Bootstrap();
+            }
+        }
+
+        public List<ProgressionEntry> GetAllProgress()
+        {
+            this.EnsureBoostrapped();
+
+            if (this.allocator == null) return new List<ProgressionEntry>();
 
             var keys = this.stringToKeyMap.ToArray();
 
@@ -117,13 +132,13 @@ namespace InfiniteTool.GameInterop
 
                 var participantId = (nint)(CurrentParticipantId << 16);
 
-                process.CallFunction<nint>(this.offsets.Persistence_GetBools_Batch, 0x0, globalBools.Address, keyList.Address);
-                process.CallFunction<nint>(this.offsets.Persistence_GetBytes_Batch, 0x0, globalBytes.Address, keyList.Address);
-                process.CallFunction<nint>(this.offsets.Persistence_GetLongs_Batch, 0x0, globalLongs.Address, keyList.Address);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeys, 0x0, globalBools, keyList);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeys, 0x0, globalBytes, keyList);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchGetLongKeys, 0x0, globalLongs, keyList);
 
-                process.CallFunction<nint>(this.offsets.Persistence_GetBoolsForParticipant_Batch, 0x0, participantBools.Address, participantId, keyList.Address);
-                process.CallFunction<nint>(this.offsets.Persistence_GetBytesForParticipant_Batch, 0x0, participantBytes.Address, participantId, keyList.Address);
-                process.CallFunction<nint>(this.offsets.Persistence_GetLongsForParticipant_Batch, 0x0, participantLongs.Address, participantId, keyList.Address);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeysForParticipant, 0x0, participantBools, participantId, keyList);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeysForParticipant, 0x0, participantBytes, participantId, keyList);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchGetLongKeysForParticipant, 0x0, participantLongs, participantId, keyList);
                 
                 globalBools.SyncFrom();
                 globalBytes.SyncFrom();
@@ -142,7 +157,7 @@ namespace InfiniteTool.GameInterop
                 var globalLongValues = globalLongs.GetValues(0, keys.Length);
                 var participantLongValues = participantLongs.GetValues(0, keys.Length);
 
-                var results = new List<Entry>(keys.Length);
+                var results = new List<ProgressionEntry>(keys.Length);
 
                 var i = 0;
                 foreach (var (str, key) in keys)
@@ -165,7 +180,7 @@ namespace InfiniteTool.GameInterop
                         _ => 0,
                     };
 
-                    results.Add(new Entry()
+                    results.Add(new ProgressionEntry()
                     {
                         KeyName = str,
                         DataType = type.ToString(),
@@ -181,6 +196,96 @@ namespace InfiniteTool.GameInterop
             }
         }
 
+        public void SetProgress(List<ProgressionEntry> entries)
+        {
+            this.EnsureBoostrapped();
+
+            var boolSet = new List<(uint key, uint globalVal, uint participantVal)>();
+            var byteSet = new List<(uint key, uint globalVal, uint participantVal)>();
+            var longSet = new List<(uint key, uint globalVal, uint participantVal)>();
+
+            foreach (var entry in entries)
+            {
+                if(stringToKeyMap.TryGetValue(entry.KeyName, out var key)
+                    && InteropConstantData.PersistenceKeys.TryGetValue(entry.KeyName, out var type))
+                {
+                    switch (type)
+                    {
+                        case PersistenceValueType.Boolean:
+                            boolSet.Add((key, entry.GlobalValue, entry.ParticipantValue));
+                            break;
+                        case PersistenceValueType.Byte:
+                            byteSet.Add((key, entry.GlobalValue, entry.ParticipantValue));
+                            break;
+                        case PersistenceValueType.Long:
+                            longSet.Add((key, entry.GlobalValue, entry.ParticipantValue));
+                            break;
+                    }
+                }
+            }
+
+            lock(allocator)
+            {
+                var boolKeys = allocator.AllocateList<uint>(boolSet.Count);
+                var byteKeys = allocator.AllocateList<uint>(byteSet.Count);
+                var longKeys = allocator.AllocateList<uint>(longSet.Count);
+                boolKeys.AddValues(boolSet.Select(b => b.key).ToArray());
+                byteKeys.AddValues(byteSet.Select(b => b.key).ToArray());
+                longKeys.AddValues(longSet.Select(b => b.key).ToArray());
+
+                var globalBools = allocator.AllocateList<bit>(boolSet.Count);
+                var globalBytes = allocator.AllocateList<short>(byteSet.Count);
+                var globalLongs = allocator.AllocateList<uint>(longSet.Count);
+                globalBools.AddValues(boolSet.Select(b => new bit(b.globalVal != 0)).ToArray());
+                globalBytes.AddValues(byteSet.Select(b => (short)b.globalVal).ToArray());
+                globalLongs.AddValues(longSet.Select(b => b.globalVal).ToArray());
+                var globalBoolResults = allocator.AllocateList<bit>(boolSet.Count);
+                var globalByteResults = allocator.AllocateList<short>(byteSet.Count);
+                var globalLongResults = allocator.AllocateList<uint>(longSet.Count);
+
+                var participantBools = allocator.AllocateList<bit>(boolSet.Count);
+                var participantBytes = allocator.AllocateList<short>(byteSet.Count);
+                var participantLongs = allocator.AllocateList<uint>(longSet.Count);
+                participantBools.AddValues(boolSet.Select(b => new bit(b.participantVal != 0)).ToArray());
+                participantBytes.AddValues(byteSet.Select(b => (short)b.participantVal).ToArray());
+                participantLongs.AddValues(longSet.Select(b => b.participantVal).ToArray());
+                var participantBoolResults = allocator.AllocateList<bit>(boolSet.Count);
+                var participantByteResults = allocator.AllocateList<short>(byteSet.Count);
+                var participantLongResults = allocator.AllocateList<uint>(longSet.Count);
+
+                var participantId = (nint)(CurrentParticipantId << 16);
+
+                this.PrepareForPersistenceCalls();
+
+                // Clear overrides
+                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrides, 0x0, DiscardList(), boolKeys);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveByteKeyOverrides, 0x0, DiscardList(), byteKeys);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrides, 0x0, DiscardList(), longKeys);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrideForParticipant, 0x0, DiscardList(), participantId, boolKeys);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveByteKeyOverrideForParticipant, 0x0, DiscardList(), participantId, byteKeys);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrideForParticipant, 0x0, DiscardList(), participantId, longKeys);
+
+                // Set new values
+                process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeys, 0x0, globalBoolResults, boolKeys, globalBools);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeys, 0x0, globalByteResults, byteKeys, globalBytes);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeys, 0x0, globalLongResults, longKeys, globalLongs);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeysForParticipant, 0x0, participantBoolResults, participantId, boolKeys, participantBools);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeysForParticipant, 0x0, participantByteResults, participantId, byteKeys, participantBytes);
+                process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeysForParticipant, 0x0, participantLongResults, participantId, longKeys, participantLongs);
+
+                //process.CallFunction<nint>(this.offsets.Player_SaveLoadoutToPersistentStorage, participantId);
+
+                allocator.Reclaim(zero: true);
+            }
+
+            nint DiscardList()
+            {
+                // Allocate enough room for list header to get results back in
+                // Body isn't required as outputs seem to be allocated by the engine?
+                return allocator.Allocate(BlamEngineList<nint>.GetRequiredSize(0).header);
+            }
+        }
+
         private void PrepareForPersistenceCalls()
         {
             process.Read(this.offsets.PersistenceData_TlsIndexOffset, out int persistenceIndex);
@@ -188,6 +293,9 @@ namespace InfiniteTool.GameInterop
 
             process.Read(this.offsets.PersistenceUnknown_TlsIndexOffset, out int unknownIndexA);
             process.SetTlsValue(unknownIndexA, instance.ReadMainTebPointer(unknownIndexA));
+
+            process.Read(this.offsets.PersistenceUnknown2_TlsIndexOffset, out int unknownIndexB);
+            process.SetTlsValue(unknownIndexB, instance.ReadMainTebPointer(unknownIndexB));
 
             process.Read(this.offsets.PlayerDatum_TlsIndexOffset, out int playerDatumIndex);
             process.SetTlsValue(playerDatumIndex, instance.ReadMainTebPointer(playerDatumIndex));
@@ -202,7 +310,7 @@ namespace InfiniteTool.GameInterop
             this.CurrentParticipantId = participantId;
         }
 
-        public class Entry : INotifyPropertyChanged
+        public class ProgressionEntry : INotifyPropertyChanged
         {
             public string KeyName { get; set; }
 

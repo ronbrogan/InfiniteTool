@@ -1,37 +1,74 @@
-﻿namespace InfiniteTool
+﻿using System.Text.Json.Serialization;
+
+namespace InfiniteTool
 {
     public class InfiniteOffsets
     {
-        public nint MainThreadEntry { get; set; } = 0x467010;
+        public nint MainThreadEntry { get; set; }
 
-        public nint Checkpoint_TlsIndexOffset { get; set; } = 0x49DF8BC;
+        public nint Checkpoint_TlsIndexOffset { get; set; }
 
-        public nint RevertFlagOffset { get; set; } = 0x44FFEC8;
+        public nint RevertFlagOffset { get; set; }
 
-        public nint CheckpointInfoOffset { get; set; } = 0x4CC1440; // 
+        public nint CheckpointInfoOffset { get; set; }
 
-        public nint PlayerDatum_TlsIndexOffset { get; set; } = 0x5194E80;
-        public nint ParticipantDatum_TlsIndexOffset { get; set; } = 0x5198158;
+        public nint PlayerDatum_TlsIndexOffset { get; set; }
+        public nint ParticipantDatum_TlsIndexOffset { get; set; }
 
-        public nint PersistenceUnknown_TlsIndexOffset { get; set; } = 0x49DF468;
-        public nint PersistenceData_TlsIndexOffset { get; set; } = 0x52252A0;
+        public nint PersistenceUnknown_TlsIndexOffset { get; set; }
+        public nint PersistenceUnknown2_TlsIndexOffset { get; set; }
 
-        public nint Persistence_KeysFromStrings_Batch { get; set; } = 0x1497860;
-        public nint Persistence_GetKeyTypes_Batch { get; set; } = 0x1497A90;
+        public nint PersistenceData_TlsIndexOffset { get; set; }
 
-        public nint Persistence_GetBools_Batch { get; set; } = 0x1476E90;
-        public nint Persistence_GetBytes_Batch { get; set; } = 0x1498A70;
-        public nint Persistence_GetLongs_Batch { get; set; } = 0x1498800;
-        public nint Persistence_GetBoolsForParticipant_Batch { get; set; } = 0x14771E0;
-        public nint Persistence_GetBytesForParticipant_Batch { get; set; } = 0x1477630;
-        public nint Persistence_GetLongsForParticipant_Batch { get; set; } = 0x1477810;
+        public nint Persistence_BatchTryCreateKeysFromStrings { get; set; }
 
-        public nint Persistence_SetBoolsForParticipant_Batch { get; set; } = 0x1475160;
-        public nint Persistence_SetBytesForParticipant_Batch { get; set; } = 0x1475E00;
-        public nint Persistence_SetLongsForParticipant_Batch { get; set; } = 0x1476AA0;
+        public nint Persistence_BatchGetKeyTypes { get; set; }
 
-        public nint StartMap { get; set; } = 0x0;
-        public nint StartMapAtSpawn { get; set; } = 0x0;
-        public nint RestartMapAtSpawn { get; set; } = 0x0;
+        public nint Persistence_BatchGetBoolKeys { get; set; }
+
+        public nint Persistence_BatchGetByteKeys { get; set; }
+
+        public nint Persistence_BatchGetLongKeys { get; set; }
+
+        public nint Persistence_BatchGetBoolKeysForParticipant { get; set; }
+
+        public nint Persistence_BatchGetByteKeysForParticipant { get; set; }
+
+        public nint Persistence_BatchGetLongKeysForParticipant { get; set; }
+
+        public nint Persistence_BatchSetBoolKeys { get; set; }
+
+        public nint Persistence_BatchSetByteKeys { get; set; }
+
+        public nint Persistence_BatchSetLongKeys { get; set; }
+
+        public nint Persistence_BatchSetBoolKeysForParticipant { get; set; }
+
+        public nint Persistence_BatchSetByteKeysForParticipant { get; set; }
+
+        public nint Persistence_BatchSetLongKeysForParticipant { get; set; }
+
+        public nint Persistence_BatchRemoveBoolKeyOverrides { get; set; }
+
+        public nint Persistence_BatchRemoveByteKeyOverrides { get; set; }
+
+        public nint Persistence_BatchRemoveLongKeyOverrides { get; set; }
+
+        public nint Persistence_BatchRemoveBoolKeyOverrideForParticipant { get; set; }
+
+        public nint Persistence_BatchRemoveByteKeyOverrideForParticipant { get; set; }
+
+        public nint Persistence_BatchRemoveLongKeyOverrideForParticipant { get; set; }
+
+        public nint Player_SaveLoadoutToPersistentStorage { get; set; }
+
+        public nint StartLevel { get; set; }
+
+        public nint StartLevelAtSpawn { get; set; }
+
+        public nint ResetLevelAtSpawn { get; set; }
+
+        [JsonPropertyName("game_revert")]
+        public nint GameRevert { get; set; }
     }
 }

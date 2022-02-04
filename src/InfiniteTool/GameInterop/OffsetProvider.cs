@@ -7,7 +7,7 @@ namespace InfiniteTool.GameInterop
 {
     public interface IOffsetProvider
     {
-        InfiniteOffsets GetOffsets(string? version);
+        InfiniteOffsets GetOffsets(string version);
     }
 
     public class JsonOffsetProvider : IOffsetProvider
@@ -23,13 +23,9 @@ namespace InfiniteTool.GameInterop
 			this.jsonOptions = options;
 		}
 
-        public InfiniteOffsets GetOffsets(string? version)
+		
+        public InfiniteOffsets GetOffsets(string version)
         {
-			if(version == null)
-            {
-				return new InfiniteOffsets();
-            }
-
 			var file = Path.Combine(Environment.CurrentDirectory, "Data", version, "offsets.json");
 
             try
