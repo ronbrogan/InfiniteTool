@@ -30,7 +30,7 @@ namespace InfiniteTool.GameInterop
     [AddINotifyPropertyChangedInterface]
     public class GameInstance
     {
-        private const string LatestVersion = "6.10021.10921.0";
+        private const string LatestVersion = "6.10021.11755.0";
         private readonly IOffsetProvider offsetProvider;
         private readonly ILogger<GameInstance> logger;
         private InfiniteOffsets offsets = new InfiniteOffsets();
