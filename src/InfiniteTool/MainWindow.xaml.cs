@@ -162,7 +162,7 @@ namespace InfiniteTool
 
         private void openLogLocation_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("explorer.exe", string.Format("/select,\"{0}\"", App.LogLocation));
+            Process.Start("explorer.exe", string.Format("/select,\"{0}\"", (Application.Current as App).LogLocation));
         }
     }
 }

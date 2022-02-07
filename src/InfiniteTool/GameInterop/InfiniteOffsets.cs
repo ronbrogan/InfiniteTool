@@ -4,7 +4,9 @@ namespace InfiniteTool
 {
     public class InfiniteOffsets
     {
-        public nint MainThreadEntry { get; set; }
+        public nint? ThreadTable { get; set; }
+
+        public nint? MainThreadEntry { get; set; }
 
         public nint Checkpoint_TlsIndexOffset { get; set; }
 

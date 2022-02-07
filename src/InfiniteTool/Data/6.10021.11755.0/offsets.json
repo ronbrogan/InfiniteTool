@@ -1,4 +1,5 @@
 {
+  "ThreadTable": "0x3E948F0",
   "MainThreadEntry": "0xBECAF8", // manual discovery via breakpoint in checkpoint fn
   "Checkpoint_TlsIndexOffset": "0x41C9748",
   "RevertFlagOffset": "0x3B68950",

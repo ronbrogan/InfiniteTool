@@ -23,10 +23,15 @@ namespace InfiniteTool
     {
         private IHost _host;
 
-        public static string LogLocation = Path.Combine(Environment.CurrentDirectory, "log.txt");
+        public string LogLocation;
 
         public App()
         {
+            var assemblyDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            Environment.CurrentDirectory = assemblyDir;
+
+            LogLocation = Path.Combine(Environment.CurrentDirectory, "log.txt");
+
             var serilogLogger = new LoggerConfiguration()
                 .WriteTo.File(LogLocation)
                 .CreateLogger();

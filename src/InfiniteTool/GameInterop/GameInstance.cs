@@ -6,7 +6,10 @@ using Superintendent.Core.Remote;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
 
 namespace InfiniteTool.GameInterop
 {
@@ -175,6 +178,10 @@ namespace InfiniteTool.GameInterop
                 return;
             }
 
+            var proc = e.Process.Process;
+
+            logger.LogInformation("Attaching to {exe}, version: {version}", proc?.MainModule?.FileName, proc?.MainModule?.FileVersionInfo.ToString());
+
             this.ProcessId = e.ProcessId;
             this.Bootstrap();
             this.OnAttach?.Invoke(this, new EventArgs());
@@ -194,7 +201,7 @@ namespace InfiniteTool.GameInterop
             try
             {
                 LoadOffsets();
-                GetMainThreadInfo();
+                Retry(GetMainThreadInfo);
                 PopulateAddresses();
                 SetupWorkspace();
             }
@@ -245,17 +252,94 @@ namespace InfiniteTool.GameInterop
             this.logger.LogInformation("Found checkpoint flag: {offset}", this.CheckpointFlagAddress);
         }
 
-        private unsafe void GetMainThreadInfo()
+        private const string mainThreadDescription = "01 WORKER";
+        private unsafe bool GetMainThreadInfo()
         {
+            uint? mainThreadId = null;
+
+            if(this.offsets.ThreadTable.HasValue)
+            {
+                var threadTable = new GameThreadTableEntry[58];
+                this.RemoteProcess.Read(this.offsets.ThreadTable.Value, MemoryMarshal.AsBytes<GameThreadTableEntry>(threadTable));
+
+                foreach(var entry in threadTable)
+                {
+                    var end = entry.Name;
+                    while (*end != 00 && (end - entry.Name) < 32) end++;
+                    var name = Encoding.UTF8.GetString(entry.Name, (int)(end - entry.Name));
+
+                    if(name == mainThreadDescription)
+                    {
+                        mainThreadId = entry.ThreadId;
+                        this.logger.LogInformation("Main thread found from table: {tid}", mainThreadId);
+                        break;
+                    }
+                }
+            }
+
             IntPtr handle = Win32.OpenProcess(AccessPermissions.ProcessQueryInformation | AccessPermissions.ProcessVmRead, false, this.ProcessId);
             if (handle == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
+            if (!mainThreadId.HasValue)
+            {
+                mainThreadId = DiscoverMainThread(handle);
+            }
+
+            if(mainThreadId.HasValue)
+            {
+                this.logger.LogInformation("Main thread found, finding TEB");
+
+                var thandle = Win32.OpenThread(ThreadAccess.QUERY_INFORMATION, false, mainThreadId.Value);
+                if (thandle == IntPtr.Zero)
+                {
+                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning");
+                }
+
+                var tinfo = new ThreadBasicInformation();
+                var hr = Win32.NtQueryInformationThread(thandle, ThreadInformationClass.ThreadBasicInformation, ref tinfo, Marshal.SizeOf(tinfo), out var tinfoReq);
+                if (hr != 0)
+                {
+                    Win32.CloseHandle(handle);
+                    Win32.CloseHandle(thandle);
+                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during NtQueryInformationThread, ThreadBasicInformation query {hr}, req {tinfoReq}", hr, tinfoReq);
+                    return false;
+                }
+
+                if (tinfo.TebBaseAddress == IntPtr.Zero)
+                {
+                    Win32.CloseHandle(handle);
+                    Win32.CloseHandle(thandle);
+                    logger.LogWarning($"TEB base address from discovered thread was zero, TID:{mainThreadId,5:x}");
+                    return false;
+                }
+
+                logger.LogInformation($"Reading TEB for TID: {mainThreadId,5:x}, teb: {tinfo.TebBaseAddress}");
+
+                TEB teb = default;
+                this.RemoteProcess.ReadAt(tinfo.TebBaseAddress, out teb);
+
+                mainThread = (thandle, teb);
+
+                logger.LogInformation($"TID: {mainThreadId,5:x}, TEB: {tinfo.TebBaseAddress:x16}, TLS Expansion: {teb.TlsExpansionSlots:x16}");
+
+
+                Win32.CloseHandle(handle); 
+                Win32.CloseHandle(thandle);
+
+                return true;
+            }
+
+            Win32.CloseHandle(handle);
+            return false;
+        }
+
+        private unsafe uint? DiscoverMainThread(IntPtr handle)
+        {
             var hinfBase = this.RemoteProcess.GetBaseOffset();
             var expectedThreadEntry = hinfBase + offsets.MainThreadEntry;
 
-            var tinfo = new ThreadBasicInformation();
-            TEB teb = default;
+            uint? tid = null;
 
             foreach (var thread in this.RemoteProcess.Threads)
             {
@@ -283,40 +367,53 @@ namespace InfiniteTool.GameInterop
                     continue;
                 }
 
-                hr = Win32.NtQueryInformationThread(thandle, ThreadInformationClass.ThreadBasicInformation, ref tinfo, Marshal.SizeOf(tinfo), out var tinfoReq);
-                if (hr != 0)
-                {
-                    Win32.CloseHandle(thandle);
-                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning, TBI query {hr}", hr);
-                    continue;
-                }
+                tid = (uint)thread.Id;
 
-                if(tinfo.TebBaseAddress == IntPtr.Zero)
-                {
-                    Win32.CloseHandle(thandle);
-                    logger.LogWarning($"TEB base address from discovered thread was zero, TID:{thread.Id,5:x}, start: {entry:x}");
-                    continue;
-                }
-
-                logger.LogInformation($"Reading TEB for TID: {thread.Id,5:x}, start: {entry:x}, teb: {tinfo.TebBaseAddress}");
-
-                this.RemoteProcess.ReadAt(tinfo.TebBaseAddress, out teb);
-
-                mainThread = (thandle, teb);
-
-                logger.LogInformation($"TID: {thread.Id,5:x}, ENTRY: {entry:x16}, TEB: {tinfo.TebBaseAddress:x16}, TLS Expansion: {teb.TlsExpansionSlots:x16}");
-
-                Win32.CloseHandle(thandle);
                 break;
             }
 
-            Win32.CloseHandle(handle);
+            return tid;
         }
 
         public nint ReadMainTebPointer(int index)
         {
             this.RemoteProcess.ReadAt((mainThread.teb.TlsExpansionSlots + 8 * index - 0x200), out nint p);
             return p;
+        }
+
+        private void Retry(Func<bool> action, int times = 5, int delay = 1000)
+        {
+            while(times > 0)
+            {
+                times--;
+
+                try
+                {
+                    if (action())
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        this.logger.LogWarning("Action did not complete");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, "Failure during action");
+
+                    if(times <= 0)
+                    {
+                        throw;
+                    }
+                }
+
+                this.logger.LogInformation("Retry {times}", times);
+
+                Thread.Sleep(delay);
+            }
+
+            throw new Exception("Action did not complete successfully");
         }
     }
 }
