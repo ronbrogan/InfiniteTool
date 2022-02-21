@@ -32,11 +32,11 @@ namespace InfiniteTool.GameInterop
             try
             {
 				var json = File.ReadAllText(file);
-				return JsonSerializer.Deserialize<InfiniteOffsets>(json, this.jsonOptions) ?? new InfiniteOffsets();
+				return JsonSerializer.Deserialize<InfiniteOffsets>(json, this.jsonOptions) ?? InfiniteOffsets.Unknown;
 			}
 			catch (Exception ex)
             {
-				return new InfiniteOffsets();
+				return InfiniteOffsets.Unknown;
 			}
         }
 

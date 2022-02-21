@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>infinity.ico</ApplicationIcon>
-    <Version>0.0.2.4</Version>
+    <Version>0.0.3.0</Version>
   </PropertyGroup>
 
 
@@ -32,7 +32,7 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-    <PackageReference Include="Superintendent.Core" Version="0.0.2.1" />
+    <PackageReference Include="Superintendent.Core" Version="0.0.3" />
   </ItemGroup>
 
 

@@ -164,5 +164,11 @@ namespace InfiniteTool
         {
             Process.Start("explorer.exe", string.Format("/select,\"{0}\"", (Application.Current as App).LogLocation));
         }
+
+        private void ejectMombasa_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Ejecting from the process will cause this tool to cease functioning until the game or the tool is restarted");
+            this.Game.Instance.RemoteProcess.EjectMombasa();
+        }
     }
 }

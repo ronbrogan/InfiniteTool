@@ -1,4 +1,5 @@
-﻿using InfiniteTool.GameInterop;
+﻿using Grpc.Core;
+using InfiniteTool.GameInterop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -38,6 +39,18 @@ namespace InfiniteTool
 
             AppDomain.CurrentDomain.FirstChanceException += (s, e) =>
             {
+                if (e.Exception is TaskCanceledException || e.Exception is OperationCanceledException)
+                {
+                    // ignore task canceled, it's expected to happen :)
+                    return;
+                }
+
+                if(e.Exception is RpcException rpce && rpce.StatusCode == StatusCode.Cancelled)
+                {
+                    // ignore canceled RPCs, it's expected to happen :)
+                    return;
+                }
+
                 serilogLogger.Error(e.Exception.ToString());
             };
 
@@ -74,11 +87,14 @@ namespace InfiniteTool
 
             var game = _host.Services.GetRequiredService<GameInstance>();
             var persistence = _host.Services.GetRequiredService<GamePersistence>();
-            game.Initialize();
-
 
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
+
+            _ = Task.Run(() =>
+            {
+                game.Initialize();
+            });
         }
 
         public static void RestartAsAdmin()

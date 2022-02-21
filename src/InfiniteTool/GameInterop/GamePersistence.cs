@@ -76,9 +76,10 @@ namespace InfiniteTool.GameInterop
             }
 
             stringToKeyMap.Clear();
+            var values = keyList.GetValues(0, (int)items);
             for (var i = 0; i < items; i++)
             {
-                var val = keyList.GetValue(i);
+                var val = values[i];
                 var key = unchecked((uint)val);
                 var found = (byte)(val >> 32);
 

@@ -6,10 +6,14 @@ using Superintendent.Core.Remote;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace InfiniteTool.GameInterop
 {
@@ -31,7 +35,7 @@ namespace InfiniteTool.GameInterop
     }
 
     [AddINotifyPropertyChangedInterface]
-    public class GameInstance
+    public class GameInstance : IDisposable
     {
         private const string LatestVersion = "6.10021.11755.0";
         private readonly IOffsetProvider offsetProvider;
@@ -42,14 +46,16 @@ namespace InfiniteTool.GameInterop
 
         public InfiniteOffsets GetCurrentOffsets() => offsets;
 
-        public RpcRemoteProcess RemoteProcess { get; }
-
-        private (IntPtr handle, TEB teb) mainThread = (IntPtr.Zero, default);
-
         public int ProcessId { get; private set; }
 
-        public nint CheckpointFlagAddress;
-        public nint RevertFlagOffset;
+        public RpcRemoteProcess RemoteProcess { get; private set; }
+
+        public Vector3 PlayerPosition { get; private set; }
+
+        private (IntPtr handle, TEB teb) mainThread = (IntPtr.Zero, default);
+        private nint CheckpointFlagAddress;
+        private nint RevertFlagOffset;
+        private nint PlayerDatumAddress;
 
         public event EventHandler<EventArgs>? OnAttach;
         public event EventHandler<EventArgs>? BeforeDetach;
@@ -70,10 +76,48 @@ namespace InfiniteTool.GameInterop
 
         internal void TriggerCheckpoint()
         {
-            this.logger.LogInformation("Checkpoint requested");
-            this.RemoteProcess.WriteAt(this.CheckpointFlagAddress, stackalloc byte[] { 0x3 });
-            this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 4, stackalloc byte[] { 0x0 });
-            this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 12, stackalloc byte[] { 0x3 });
+            try
+            {
+                this.logger.LogInformation("Checkpoint requested");
+                this.RemoteProcess.WriteAt(this.CheckpointFlagAddress, stackalloc byte[] { 0x3 });
+                this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 4, stackalloc byte[] { 0x0 });
+                this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 12, stackalloc byte[] { 0x3 });
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Checkpoint failed, re-bootstrapping");
+                this.Bootstrap();
+            }
+        }
+
+        private CancellationTokenSource playerPoller = new();
+        private Task? playerPollTask = null;
+        private bool disposedValue;
+
+        public void PollPlayerData()
+        {
+            if (this.playerPollTask != null)
+            {
+                this.playerPoller.Cancel();
+                this.playerPollTask.Wait();
+                this.playerPollTask = null;
+            }
+
+            if(this.playerPoller.IsCancellationRequested)
+                this.playerPoller.TryReset();
+
+            this.logger.LogInformation("Polling player data");
+
+            this.playerPollTask = this.RemoteProcess.PollMemoryAt<PlayerDatum>(this.PlayerDatumAddress, 33, d =>
+            {
+                this.PlayerPosition = d.Position;
+            }, playerPoller.Token);
+        }
+
+        public void StopPollingPlayerData()
+        {
+            this.playerPoller.Cancel();
+            this.PlayerPosition = Vector3.Zero;
         }
 
         public void StartMap(InfiniteMap map)
@@ -147,7 +191,7 @@ namespace InfiniteTool.GameInterop
 
             try
             {
-                this.RemoteProcess.Attach("HaloInfinite");
+                this.RemoteProcess.Attach(AttachGuard, "HaloInfinite");
             }
             catch (Win32Exception ex)
             {
@@ -156,6 +200,26 @@ namespace InfiniteTool.GameInterop
                     App.RestartAsAdmin();
                 }
             }
+        }
+
+        private bool AttachGuard(Process process)
+        {
+            if ((DateTime.Now - process.StartTime).TotalSeconds < 15)
+                return false;
+
+            var version = GetGameVersion(process);
+            var tmpOffsets = this.offsetProvider.GetOffsets(version);
+
+            if (tmpOffsets == InfiniteOffsets.Unknown)
+            {
+                MessageBox.Show($"Game Version {version} is not yet supported by this tool");
+                return false; 
+            }
+
+            var found = TryGetMainThread(process, tmpOffsets, out var tid);
+
+            if (process.HasExited) return false;
+            return found;
         }
 
         private void RemoteProcess_AttachException(object? sender, AttachExceptionArgs e)
@@ -193,6 +257,7 @@ namespace InfiniteTool.GameInterop
             this.ProcessId = 0;
             this.RevertFlagOffset = 0;
             this.CheckpointFlagAddress = 0;
+            this.StopPollingPlayerData();
         }
 
         public void Bootstrap()
@@ -200,10 +265,14 @@ namespace InfiniteTool.GameInterop
             logger.LogInformation("Bootstrapping for new process {PID}", this.ProcessId);
             try
             {
-                LoadOffsets();
-                Retry(GetMainThreadInfo);
+                if (this.RemoteProcess.Process == null) throw new Exception("Remote process was not available");
+
+                var offsets = LoadOffsets();
+                Retry(() => GetMainThreadInfo(this.RemoteProcess.Process, offsets), times: 30, delay: 3000);
                 PopulateAddresses();
                 SetupWorkspace();
+
+                PollPlayerData();
             }
             catch { }
         }
@@ -224,21 +293,27 @@ namespace InfiniteTool.GameInterop
 
             var allocator = new ArenaAllocator(this.RemoteProcess, 4 * 1024 * 1024); // 4MB working area
 
-            foreach(var (map,scenario) in InteropConstantData.MapScenarios)
+            var items = InteropConstantData.MapScenarios.ToArray();
+            var strings = items.Select(i => i.Value).ToArray();
+
+            var addresses = allocator.WriteStrings(strings);
+            for(var i = 0; i < items.Length; i++)
             {
-                scenarioStringLocations[map] = allocator.WriteString(scenario);
+                scenarioStringLocations[items[i].Key] = addresses[i];
             }
         }
 
-        public string GetGameVersion()
+        public string GetGameVersion(Process? p = null)
         {
+            var proc = p ?? this.RemoteProcess.Process;
             // TODO: winstore version on the exe is not available, need to find a reliable source of version info to not have latest version hardcoded for winstore fallback
-            return this.RemoteProcess.Process?.MainModule?.FileVersionInfo.FileVersion ?? LatestVersion;
+            return proc?.MainModule?.FileVersionInfo.FileVersion ?? LatestVersion;
         }
 
-        public void LoadOffsets()
+        public InfiniteOffsets LoadOffsets()
         {
-            this.offsets = this.offsetProvider.GetOffsets(GetGameVersion());
+            this.offsets = this.offsetProvider.GetOffsets(GetGameVersion(this.RemoteProcess.Process));
+            return this.offsets;
         }
 
         public unsafe void PopulateAddresses()
@@ -250,25 +325,33 @@ namespace InfiniteTool.GameInterop
 
             this.CheckpointFlagAddress = this.ReadMainTebPointer(checkpointIndex);
             this.logger.LogInformation("Found checkpoint flag: {offset}", this.CheckpointFlagAddress);
+
+            this.RemoteProcess.Read(this.offsets.PlayerDatum_TlsIndexOffset, out int playerDatumIndex);
+            this.PlayerDatumAddress = this.ReadMainTebPointer(playerDatumIndex);
+            this.logger.LogInformation("Found player datum: {offset}", this.PlayerDatumAddress);
+
         }
 
         private const string mainThreadDescription = "01 WORKER";
-        private unsafe bool GetMainThreadInfo()
+        private unsafe bool TryGetMainThread(Process process, InfiniteOffsets offsets, out uint threadId)
         {
+            threadId = default;
+            var remote = new PinvokeRemoteProcess(process.Id);
+
             uint? mainThreadId = null;
 
-            if(this.offsets.ThreadTable.HasValue)
+            if (offsets.ThreadTable.HasValue)
             {
                 var threadTable = new GameThreadTableEntry[58];
-                this.RemoteProcess.Read(this.offsets.ThreadTable.Value, MemoryMarshal.AsBytes<GameThreadTableEntry>(threadTable));
+                remote.Read(offsets.ThreadTable.Value, MemoryMarshal.AsBytes<GameThreadTableEntry>(threadTable));
 
-                foreach(var entry in threadTable)
+                foreach (var entry in threadTable)
                 {
                     var end = entry.Name;
                     while (*end != 00 && (end - entry.Name) < 32) end++;
                     var name = Encoding.UTF8.GetString(entry.Name, (int)(end - entry.Name));
 
-                    if(name == mainThreadDescription)
+                    if (name == mainThreadDescription)
                     {
                         mainThreadId = entry.ThreadId;
                         this.logger.LogInformation("Main thread found from table: {tid}", mainThreadId);
@@ -277,20 +360,21 @@ namespace InfiniteTool.GameInterop
                 }
             }
 
-            IntPtr handle = Win32.OpenProcess(AccessPermissions.ProcessQueryInformation | AccessPermissions.ProcessVmRead, false, this.ProcessId);
+            threadId = mainThreadId.GetValueOrDefault();
+            return mainThreadId.HasValue;
+        }
+
+        private unsafe bool GetMainThreadInfo(Process process, InfiniteOffsets offsets)
+        {
+            IntPtr handle = Win32.OpenProcess(AccessPermissions.ProcessQueryInformation | AccessPermissions.ProcessVmRead, false, process.Id);
             if (handle == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            if (!mainThreadId.HasValue)
-            {
-                mainThreadId = DiscoverMainThread(handle);
-            }
-
-            if(mainThreadId.HasValue)
+            if (TryGetMainThread(process, offsets, out var mainThreadId))
             {
                 this.logger.LogInformation("Main thread found, finding TEB");
 
-                var thandle = Win32.OpenThread(ThreadAccess.QUERY_INFORMATION, false, mainThreadId.Value);
+                var thandle = Win32.OpenThread(ThreadAccess.QUERY_INFORMATION, false, mainThreadId);
                 if (thandle == IntPtr.Zero)
                 {
                     logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning");
@@ -414,6 +498,29 @@ namespace InfiniteTool.GameInterop
             }
 
             throw new Exception("Action did not complete successfully");
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    this.allocator?.Dispose();
+                    this.RemoteProcess.EjectMombasa();
+                    this.RemoteProcess?.Dispose();
+                    this.playerPoller?.Dispose();
+                }
+
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
         }
     }
 }
