@@ -37,7 +37,7 @@ namespace InfiniteTool.GameInterop
     [AddINotifyPropertyChangedInterface]
     public class GameInstance : IDisposable
     {
-        private const string LatestVersion = "6.10021.11755.0";
+        private const string LatestVersion = "6.10021.12835.0";
         private readonly IOffsetProvider offsetProvider;
         private readonly ILogger<GameInstance> logger;
         private InfiniteOffsets offsets = new InfiniteOffsets();
@@ -79,9 +79,17 @@ namespace InfiniteTool.GameInterop
             try
             {
                 this.logger.LogInformation("Checkpoint requested");
-                this.RemoteProcess.WriteAt(this.CheckpointFlagAddress, stackalloc byte[] { 0x3 });
-                this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 4, stackalloc byte[] { 0x0 });
-                this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 12, stackalloc byte[] { 0x3 });
+
+                for (var i = 64; i < 350; i++)
+                {
+                    this.RemoteProcess.SetTlsValue(i, ReadMainTebPointer(i));
+                }
+
+                
+                //this.RemoteProcess.WriteAt(this.CheckpointFlagAddress, stackalloc byte[] { 0x3 });
+                //this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 4, stackalloc byte[] { 0x0 });
+                //this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 12, stackalloc byte[] { 0x3 });
+                this.RemoteProcess.CallFunction<nint>(this.offsets.GameSaveFast);
             }
             catch (Exception ex)
             {
@@ -272,7 +280,7 @@ namespace InfiniteTool.GameInterop
                 PopulateAddresses();
                 SetupWorkspace();
 
-                PollPlayerData();
+                //PollPlayerData();
             }
             catch { }
         }
@@ -323,12 +331,12 @@ namespace InfiniteTool.GameInterop
             this.RemoteProcess.Read(this.offsets.Checkpoint_TlsIndexOffset, out int checkpointIndex);
             this.logger.LogInformation("Found checkpoint TLS index: {index}", checkpointIndex);
 
-            this.CheckpointFlagAddress = this.ReadMainTebPointer(checkpointIndex);
-            this.logger.LogInformation("Found checkpoint flag: {offset}", this.CheckpointFlagAddress);
+            //this.CheckpointFlagAddress = this.ReadMainTebPointer(checkpointIndex);
+            //this.logger.LogInformation("Found checkpoint flag: {offset}", this.CheckpointFlagAddress);
 
-            this.RemoteProcess.Read(this.offsets.PlayerDatum_TlsIndexOffset, out int playerDatumIndex);
-            this.PlayerDatumAddress = this.ReadMainTebPointer(playerDatumIndex);
-            this.logger.LogInformation("Found player datum: {offset}", this.PlayerDatumAddress);
+            //this.RemoteProcess.Read(this.offsets.PlayerDatum_TlsIndexOffset, out int playerDatumIndex);
+            //this.PlayerDatumAddress = this.ReadMainTebPointer(playerDatumIndex);
+            //this.logger.LogInformation("Found player datum: {offset}", this.PlayerDatumAddress);
 
         }
 
@@ -461,8 +469,8 @@ namespace InfiniteTool.GameInterop
 
         public nint ReadMainTebPointer(int index)
         {
-            this.RemoteProcess.ReadAt((mainThread.teb.TlsExpansionSlots + 8 * index - 0x200), out nint p);
-            return p;
+            this.RemoteProcess.ReadAt((mainThread.teb.TlsExpansionSlots + 8 * index - 0x200), out ulong p);
+            return (nint)p;
         }
 
         private void Retry(Func<bool> action, int times = 5, int delay = 1000)

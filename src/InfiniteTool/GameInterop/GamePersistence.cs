@@ -289,26 +289,20 @@ namespace InfiniteTool.GameInterop
 
         private void PrepareForPersistenceCalls()
         {
-            process.Read(this.offsets.PersistenceData_TlsIndexOffset, out int persistenceIndex);
-            process.SetTlsValue(persistenceIndex, instance.ReadMainTebPointer(persistenceIndex));
+            for(var i = 64; i < 350; i++)
+            {
+                process.SetTlsValue(i, instance.ReadMainTebPointer(i));
+            }
 
-            process.Read(this.offsets.PersistenceUnknown_TlsIndexOffset, out int unknownIndexA);
-            process.SetTlsValue(unknownIndexA, instance.ReadMainTebPointer(unknownIndexA));
 
-            process.Read(this.offsets.PersistenceUnknown2_TlsIndexOffset, out int unknownIndexB);
-            process.SetTlsValue(unknownIndexB, instance.ReadMainTebPointer(unknownIndexB));
-
-            process.Read(this.offsets.PlayerDatum_TlsIndexOffset, out int playerDatumIndex);
-            process.SetTlsValue(playerDatumIndex, instance.ReadMainTebPointer(playerDatumIndex));
-
-            process.Read(this.offsets.ParticipantDatum_TlsIndexOffset, out int participantDatumIndex);
-            var participantDatumLocation = instance.ReadMainTebPointer(participantDatumIndex);
-            process.SetTlsValue(participantDatumIndex, participantDatumLocation);
-
-            process.ReadAt(participantDatumLocation + 0x78, out nint participantAddress);
-            process.ReadAt(participantAddress, out uint participantId);
-
-            this.CurrentParticipantId = participantId;
+            //process.Read(this.offsets.ParticipantDatum_TlsIndexOffset, out int participantDatumIndex);
+            //var participantDatumLocation = instance.ReadMainTebPointer(participantDatumIndex);
+            //
+            //
+            //process.ReadAt(participantDatumLocation + 0x78, out nint participantAddress);
+            //process.ReadAt(participantAddress, out uint participantId);
+            //
+            //this.CurrentParticipantId = participantId;
         }
 
         public class ProgressionEntry : INotifyPropertyChanged

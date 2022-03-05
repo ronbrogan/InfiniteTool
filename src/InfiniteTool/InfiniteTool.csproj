@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>infinity.ico</ApplicationIcon>
-    <Version>0.0.3.0</Version>
+    <Version>0.0.3.1-beta</Version>
   </PropertyGroup>
 
 
@@ -15,6 +15,7 @@
     <Content Include="Data\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Remove="Data\6.10021.12835.0\offsets.json" />
     <Content Include="infinity.ico" />
   </ItemGroup>
 

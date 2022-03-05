@@ -74,5 +74,8 @@ namespace InfiniteTool
 
         [JsonPropertyName("game_revert")]
         public nint GameRevert { get; set; }
+
+        [JsonPropertyName("game_save_fast")]
+        public nint GameSaveFast { get; set; }
     }
 }

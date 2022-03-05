@@ -43,7 +43,7 @@
                         <Button x:Name="bindable_cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
                         <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
                         <!--<Button x:Name="bindable_keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>-->
-                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs"  HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
+                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="False" HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
                     </StackPanel>
                     <!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <Button x:Name="saveCp" Content="Save As" HorizontalAlignment="Center" Margin="3" Click="saveCp_Click" />
@@ -60,7 +60,7 @@
                     </DataGrid>
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Progression Data">
+            <TabItem Header="Progression Data" Visibility="Hidden">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
