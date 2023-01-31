@@ -7,7 +7,7 @@
         xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         xmlns:game="clr-namespace:InfiniteTool.GameInterop"
         mc:Ignorable="d"
-        Title="Infinite Tool" Height="444" Width="671">
+        Title="Infinite Tool" Height="325" Width="250">
 
     <Window.Resources>
         <wpfutil:HexValConverter x:Key="HexValConverter"></wpfutil:HexValConverter>
@@ -39,25 +39,28 @@
         <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
             <TabItem Header="Checkpoints">
                 <DockPanel>
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
                         <Button x:Name="bindable_cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
                         <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
+                        <Button x:Name="bindable_doubleRevert" Content="Double Revert" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="doubleRevert_Click"/>
+                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
+                        <Button x:Name="bindable_invuln" Content="Toggle Invuln" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="invulnToggle_Click"/>
+                        <Button x:Name="bindable_restock" Content="Restock" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="restock_Click"/>
                         <!--<Button x:Name="bindable_keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>-->
-                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="False" HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
                     </StackPanel>
                     <!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <Button x:Name="saveCp" Content="Save As" HorizontalAlignment="Center" Margin="3" Click="saveCp_Click" />
                         <Button x:Name="loadCp" Content="Load From File" HorizontalAlignment="Center" Margin="3" Click="loadCp_Click" />
                         <Button x:Name="injectCp" Content="Inject" HorizontalAlignment="Center" Margin="3" Click="injectCp_Click" />
                     </StackPanel>-->
-                    <DataGrid  IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=Checkpoints}" SelectedValue="{Binding Path=SelectedCheckpoint}">
+                    <!--<DataGrid  IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=Checkpoints}" SelectedValue="{Binding Path=SelectedCheckpoint}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header=""></DataGridTextColumn>
                             <DataGridTextColumn Header="Level" Binding="{Binding LevelName}" Width="250"></DataGridTextColumn>
                             <DataGridTextColumn Header="Time" Binding="{Binding GameTime}" Width="75"></DataGridTextColumn>
                             <DataGridTextColumn Header="File" Binding="{Binding Filename}" Width="150"></DataGridTextColumn>
                         </DataGrid.Columns>
-                    </DataGrid>
+                    </DataGrid>-->
                 </DockPanel>
             </TabItem>
             <TabItem Header="Progression Data" Visibility="Hidden">

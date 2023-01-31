@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace InfiniteTool
 {
@@ -55,6 +56,25 @@ namespace InfiniteTool
             this.Game.Instance.ToggleCheckpointSuppression();
         }
 
+        private void doubleRevert_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.DoubleRevert();
+        }
+
+        private void invulnToggle_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.ToggleInvuln();
+        }
+
+        private void coordsToggle_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void flycamToggle_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+
         private void refreshPersistence_Click(object sender, RoutedEventArgs e)
         {
             this.Game.RefreshPersistence();
@@ -68,6 +88,11 @@ namespace InfiniteTool
         private void injectCp_Click(object sender, RoutedEventArgs e)
         {
             this.Game.InjectSelectedCheckpoint();
+        }
+        
+        private void restock_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.RestockPlayer();
         }
 
         private void saveCp_Click(object sender, RoutedEventArgs e)
@@ -87,22 +112,22 @@ namespace InfiniteTool
             }
         }
 
-        private void loadCp_Click(object sender, RoutedEventArgs e)
-        {
-            var open = new OpenFileDialog();
-            open.DefaultExt = ".infcp";
-            open.AddExtension = true;
-            open.FileName = "checkpoint.infcp";
-            open.Filter = "Infinite Checkpoint Files (*.infcp) | *.infcp";
-            if (open.ShowDialog(this) ?? false)
-            {
-                using var file = open.OpenFile();
-                var cpData = new byte[GameInstance.CheckpointDataSize];
-                file.Read(cpData);
-
-                this.Game.AddCheckpoint(cpData, open.FileName);
-            }
-        }
+        //private void loadCp_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var open = new OpenFileDialog();
+        //    open.DefaultExt = ".infcp";
+        //    open.AddExtension = true;
+        //    open.FileName = "checkpoint.infcp";
+        //    open.Filter = "Infinite Checkpoint Files (*.infcp) | *.infcp";
+        //    if (open.ShowDialog(this) ?? false)
+        //    {
+        //        using var file = open.OpenFile();
+        //        var cpData = new byte[GameInstance.CheckpointDataSize];
+        //        file.Read(cpData);
+        //
+        //        this.Game.AddCheckpoint(cpData, open.FileName);
+        //    }
+        //}
 
         private void aboutMenu_Click(object sender, RoutedEventArgs e)
         {

@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>infinity.ico</ApplicationIcon>
-    <Version>0.0.3.1-beta</Version>
+    <Version>0.0.4</Version>
   </PropertyGroup>
 
 
@@ -16,6 +16,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Remove="Data\6.10021.12835.0\offsets.json" />
+    <None Remove="Data\6.10021.16272.0\offsets.json" />
     <Content Include="infinity.ico" />
   </ItemGroup>
 
@@ -33,7 +34,7 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-    <PackageReference Include="Superintendent.Core" Version="0.0.3" />
+    <PackageReference Include="Superintendent.Core" Version="0.0.3.3" />
   </ItemGroup>
 
 

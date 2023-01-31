@@ -1,6 +1,7 @@
 ﻿using InfiniteTool.GameInterop.EngineDataTypes;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
+using Serilog;
 using Superintendent.Core.Native;
 using Superintendent.Core.Remote;
 using System;
@@ -67,28 +68,12 @@ namespace InfiniteTool.GameInterop
             this.RemoteProcess = new RpcRemoteProcess();
         }
 
-        internal void TriggerRevert()
-        {
-            this.logger.LogInformation("Revert requested");
-            //this.RemoteProcess.Write(this.RevertFlagOffset, stackalloc byte[] { 0x22 });
-            this.RemoteProcess.CallFunction<nint>(this.offsets.GameRevert);
-        }
-
         internal void TriggerCheckpoint()
         {
             try
             {
                 this.logger.LogInformation("Checkpoint requested");
-
-                for (var i = 64; i < 350; i++)
-                {
-                    this.RemoteProcess.SetTlsValue(i, ReadMainTebPointer(i));
-                }
-
-                
-                //this.RemoteProcess.WriteAt(this.CheckpointFlagAddress, stackalloc byte[] { 0x3 });
-                //this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 4, stackalloc byte[] { 0x0 });
-                //this.RemoteProcess.WriteAt(this.CheckpointFlagAddress + 12, stackalloc byte[] { 0x3 });
+                this.PrepareForScriptCalls();
                 this.RemoteProcess.CallFunction<nint>(this.offsets.GameSaveFast);
             }
             catch (Exception ex)
@@ -96,6 +81,55 @@ namespace InfiniteTool.GameInterop
                 this.logger.LogError(ex, "Checkpoint failed, re-bootstrapping");
                 this.Bootstrap();
             }
+        }
+
+        internal void TriggerRevert()
+        {
+            this.logger.LogInformation("Revert requested");
+            this.PrepareForScriptCalls();
+            this.RemoteProcess.CallFunction<nint>(this.offsets.GameRevert);
+        }
+
+        public void DoubleRevert()
+        {
+            this.logger.LogInformation("Double revert requested");
+            this.PrepareForScriptCalls();
+            this.RemoteProcess.Read(this.offsets.CheckpointInfoAddress, out CheckpointInfo info);
+            info.CurrentSlot ^= 1;
+            this.RemoteProcess.Write(this.offsets.CheckpointInfoAddress, info);
+            this.RemoteProcess.CallFunction<nint>(this.offsets.GameRevert);
+        }
+
+        internal void ToggleCheckpointSuppression()
+        {
+            this.PrepareForScriptCalls();
+            this.RemoteProcess.Read(this.offsets.CheckpointInfoAddress, out CheckpointInfo cpInfo);
+            cpInfo.SuppressCheckpoints = (byte)(cpInfo.SuppressCheckpoints == 0 ? 1 : 0);
+            this.logger.LogInformation("Checkpoint suppresion toggle to {enabled}", cpInfo.SuppressCheckpoints);
+            this.RemoteProcess.Write(this.offsets.CheckpointInfoAddress, cpInfo);
+        }
+
+        private int invuln = 0;
+        internal void ToggleInvuln()
+        {
+            this.logger.LogInformation($"Invuln requested, val: {invuln}");
+            this.PrepareForScriptCalls();
+            var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
+            RemoteProcess.CallFunction<nint>(this.offsets.object_cannot_die, player, invuln ^= 1);
+        }
+
+        public void RestockPlayer()
+        {
+            this.logger.LogInformation("Restock requested");
+            this.PrepareForScriptCalls();
+            var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
+            this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillAmmo, player);
+
+            // Grenade restocks throw for some reason, but they *do* restock 
+            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 1); } catch { }
+            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 2); } catch { }
+            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 3); } catch { }
+            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 4); } catch { }
         }
 
         private CancellationTokenSource playerPoller = new();
@@ -135,59 +169,6 @@ namespace InfiniteTool.GameInterop
                 this.logger.LogInformation("Starting map {map}//{location}", map, location);
                 this.RemoteProcess.CallFunction<nint>(this.offsets.StartLevel, location);
             }
-        }
-
-        public const int CheckpointDataSize = 0xF0000; //0xEB9E8;
-        public unsafe byte[]? SaveCheckpoint()
-        {
-            this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
-
-            var cpData = new byte[CheckpointDataSize+4];
-
-            if (cpInfo.Slot0 == 0 || cpInfo.Slot1 == 0) return null;
-
-            var hash = cpInfo.CurrentSlot == 0 ? cpInfo.Hash0 : cpInfo.Hash1;
-            BitConverter.TryWriteBytes(cpData, hash);
-
-            var slotAddress = cpInfo.CurrentSlot == 0 ? cpInfo.Slot0 : cpInfo.Slot1;
-            this.RemoteProcess.ReadAt(slotAddress, cpData.AsSpan().Slice(4));
-
-            return cpData;
-        }
-
-        internal void InjectCheckpoint(byte[] data)
-        {
-            if (data.Length == 0) return;
-
-            this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
-
-            if (cpInfo.Slot0 == 0 || cpInfo.Slot1 == 0) return;
-
-            nint slotAddress;
-
-            if(cpInfo.CurrentSlot == 0)
-            {
-                slotAddress = cpInfo.Slot0;
-                cpInfo.Hash0 = BitConverter.ToUInt32(data, 0);
-            }
-            else
-            {
-                slotAddress = cpInfo.Slot1;
-                cpInfo.Hash1 = BitConverter.ToUInt32(data, 0);
-            }
-
-            this.RemoteProcess.WriteAt(slotAddress, data.AsSpan().Slice(4));
-            this.RemoteProcess.WriteAt(cpInfo.SlotX, data.AsSpan().Slice(4));
-
-            this.RemoteProcess.Write(this.offsets.CheckpointInfoOffset, cpInfo);
-        }
-
-        internal void ToggleCheckpointSuppression()
-        {
-            this.RemoteProcess.Read(this.offsets.CheckpointInfoOffset, out CheckpointInfo cpInfo);
-            cpInfo.SuppressCheckpoints = (byte)(cpInfo.SuppressCheckpoints == 0 ? 1 : 0);
-            this.logger.LogInformation("Checkpoint suppresion toggle to {enabled}", cpInfo.SuppressCheckpoints);
-            this.RemoteProcess.Write(this.offsets.CheckpointInfoOffset, cpInfo);
         }
 
         public void Initialize()
@@ -277,7 +258,7 @@ namespace InfiniteTool.GameInterop
 
                 var offsets = LoadOffsets();
                 Retry(() => GetMainThreadInfo(this.RemoteProcess.Process, offsets), times: 30, delay: 3000);
-                PopulateAddresses();
+                //PopulateAddresses();
                 SetupWorkspace();
 
                 //PollPlayerData();
@@ -315,6 +296,9 @@ namespace InfiniteTool.GameInterop
         {
             var proc = p ?? this.RemoteProcess.Process;
             // TODO: winstore version on the exe is not available, need to find a reliable source of version info to not have latest version hardcoded for winstore fallback
+            
+            // IDEA: find location of version strings for each version, iterate over known and read, check version string equality
+            
             return proc?.MainModule?.FileVersionInfo.FileVersion ?? LatestVersion;
         }
 
@@ -324,21 +308,6 @@ namespace InfiniteTool.GameInterop
             return this.offsets;
         }
 
-        public unsafe void PopulateAddresses()
-        {
-            this.RevertFlagOffset = this.offsets.RevertFlagOffset;
-
-            this.RemoteProcess.Read(this.offsets.Checkpoint_TlsIndexOffset, out int checkpointIndex);
-            this.logger.LogInformation("Found checkpoint TLS index: {index}", checkpointIndex);
-
-            //this.CheckpointFlagAddress = this.ReadMainTebPointer(checkpointIndex);
-            //this.logger.LogInformation("Found checkpoint flag: {offset}", this.CheckpointFlagAddress);
-
-            //this.RemoteProcess.Read(this.offsets.PlayerDatum_TlsIndexOffset, out int playerDatumIndex);
-            //this.PlayerDatumAddress = this.ReadMainTebPointer(playerDatumIndex);
-            //this.logger.LogInformation("Found player datum: {offset}", this.PlayerDatumAddress);
-
-        }
 
         private const string mainThreadDescription = "01 WORKER";
         private unsafe bool TryGetMainThread(Process process, InfiniteOffsets offsets, out uint threadId)
@@ -426,45 +395,22 @@ namespace InfiniteTool.GameInterop
             return false;
         }
 
-        private unsafe uint? DiscoverMainThread(IntPtr handle)
+        private void PrepareForScriptCalls()
         {
-            var hinfBase = this.RemoteProcess.GetBaseOffset();
-            var expectedThreadEntry = hinfBase + offsets.MainThreadEntry;
-
-            uint? tid = null;
-
-            foreach (var thread in this.RemoteProcess.Threads)
+            for (var i = 64; i < 350; i++)
             {
-                var thandle = Win32.OpenThread(ThreadAccess.QUERY_INFORMATION, false, (uint)thread.Id);
-
-                if (thandle == IntPtr.Zero)
-                {
-                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning");
-                }
-
-                var entry = new IntPtr();
-                var hr = Win32.NtQueryInformationThread(thandle, ThreadInformationClass.ThreadQuerySetWin32StartAddress, ref entry, Marshal.SizeOf(entry), out var entryReq);
-                if (hr != 0)
-                {
-                    Win32.CloseHandle(thandle);
-                    logger.LogError(new Win32Exception(Marshal.GetLastWin32Error()), "Error during thread scanning, start address query {hr}", hr);
-                    continue;
-                }
-
-                logger.LogInformation($"Inspecting TID: {thread.Id,5:x}, start: {entry:x}, expect: {expectedThreadEntry:x}");
-
-                if (entry != expectedThreadEntry)
-                {
-                    Win32.CloseHandle(thandle);
-                    continue;
-                }
-
-                tid = (uint)thread.Id;
-
-                break;
+                this.RemoteProcess.SetTlsValue(i, ReadMainTebPointer(i));
             }
 
-            return tid;
+
+            //process.Read(this.offsets.ParticipantDatum_TlsIndexOffset, out int participantDatumIndex);
+            //var participantDatumLocation = instance.ReadMainTebPointer(participantDatumIndex);
+            //
+            //
+            //process.ReadAt(participantDatumLocation + 0x78, out nint participantAddress);
+            //process.ReadAt(participantAddress, out uint participantId);
+            //
+            //this.CurrentParticipantId = participantId;
         }
 
         public nint ReadMainTebPointer(int index)

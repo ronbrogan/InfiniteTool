@@ -8,21 +8,7 @@ namespace InfiniteTool
 
         public nint? ThreadTable { get; set; }
 
-        public nint? MainThreadEntry { get; set; }
 
-        public nint Checkpoint_TlsIndexOffset { get; set; }
-
-        public nint RevertFlagOffset { get; set; }
-
-        public nint CheckpointInfoOffset { get; set; }
-
-        public nint PlayerDatum_TlsIndexOffset { get; set; }
-        public nint ParticipantDatum_TlsIndexOffset { get; set; }
-
-        public nint PersistenceUnknown_TlsIndexOffset { get; set; }
-        public nint PersistenceUnknown2_TlsIndexOffset { get; set; }
-
-        public nint PersistenceData_TlsIndexOffset { get; set; }
 
         public nint Persistence_BatchTryCreateKeysFromStrings { get; set; }
 
@@ -72,10 +58,30 @@ namespace InfiniteTool
 
         public nint ResetLevelAtSpawn { get; set; }
 
+
         [JsonPropertyName("game_revert")]
         public nint GameRevert { get; set; }
 
         [JsonPropertyName("game_save_fast")]
         public nint GameSaveFast { get; set; }
+
+
+        public nint players { get; set; } // -> ObjectList
+        
+        public nint player_get { get; set; } // Integer -> PlayerOrUnit
+
+        public nint camera_set_mode { get; set; } // PlayerOrUnit, Integer32->Void
+
+        public nint object_cannot_take_damage { get; set; }
+
+        public nint object_can_take_damage { get; set; }
+
+        public nint object_cannot_die { get; set; }
+
+        public nint Unit_RefillAmmo { get; set; }
+
+        public nint Unit_RefillGrenades { get; set; }
+
+        public nint CheckpointInfoAddress { get; set; }
     }
 }

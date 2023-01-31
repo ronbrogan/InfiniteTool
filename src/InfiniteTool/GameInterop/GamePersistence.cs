@@ -115,7 +115,7 @@ namespace InfiniteTool.GameInterop
 
             var keys = this.stringToKeyMap.ToArray();
 
-            this.PrepareForPersistenceCalls();
+            this.PrepareForScriptCalls();
 
             lock (this.allocator)
             {
@@ -256,7 +256,7 @@ namespace InfiniteTool.GameInterop
 
                 var participantId = (nint)(CurrentParticipantId << 16);
 
-                this.PrepareForPersistenceCalls();
+                this.PrepareForScriptCalls();
 
                 // Clear overrides
                 process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrides, 0x0, DiscardList(), boolKeys);
@@ -287,7 +287,7 @@ namespace InfiniteTool.GameInterop
             }
         }
 
-        private void PrepareForPersistenceCalls()
+        private void PrepareForScriptCalls()
         {
             for(var i = 64; i < 350; i++)
             {

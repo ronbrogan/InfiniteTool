@@ -63,17 +63,17 @@ namespace InfiniteTool
 
         internal void InjectSelectedCheckpoint()
         {
-            this.Instance.InjectCheckpoint(SelectedCheckpoint.Data);
+            //this.Instance.InjectCheckpoint(SelectedCheckpoint.Data);
         }
 
         internal void SaveCurrentCheckpoint()
         {
-            var data = this.Instance.SaveCheckpoint();
+            //var data = this.Instance.SaveCheckpoint();
 
-            if(data != null)
-            {
-                this.AddCheckpoint(data);
-            }
+            //if(data != null)
+            //{
+            //    this.AddCheckpoint(data);
+            //}
         }
 
         private int cp = 0;
