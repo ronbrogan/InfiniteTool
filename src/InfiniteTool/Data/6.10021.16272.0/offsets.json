@@ -4,30 +4,8 @@
 
   "players": "0x00df63d0",
   "player_get": "0x0293acc4",
-  "Persistence_BatchTryCreateKeysFromStrings": "0x6a1160",
-  "Persistence_BatchGetKeyTypes": "0x8094dc",
-  "Persistence_BatchGetBoolKeys": "0x1bbd5a0",
-  "Persistence_BatchGetByteKeys": "0x1bbe710",
-  "Persistence_BatchGetLongKeys": "0x1bb9420",
-  "Persistence_BatchGetBoolKeysForParticipant": "0x1bb9650",
-  "Persistence_BatchGetByteKeysForParticipant": "0x18eafe0",
-  "Persistence_BatchGetLongKeysForParticipant": "0x19fa480",
-  "Persistence_BatchSetBoolKeys": "0x1bb4eb0",
-  "Persistence_BatchSetByteKeys": "0x1bb3e60",
-  "Persistence_BatchSetLongKeys": "0x1bb7a00",
-  "Persistence_BatchSetBoolKeysForParticipant": "0x1bb68a0",
-  "Persistence_BatchSetByteKeysForParticipant": "0x1bbd190",
-  "Persistence_BatchSetLongKeysForParticipant": "0x1bb6c90",
-  "Persistence_BatchRemoveBoolKeyOverrides": "0x1bbd970",
-  "Persistence_BatchRemoveByteKeyOverrides": "0x1bbbd40",
-  "Persistence_BatchRemoveLongKeyOverrides": "0x1bb9e10",
-  "Persistence_BatchRemoveBoolKeyOverrideForParticipant": "0x1bbcbf0",
-  "Persistence_BatchRemoveByteKeyOverrideForParticipant": "0x1bbb7a0",
-  "Persistence_BatchRemoveLongKeyOverrideForParticipant": "0x1bb5680",
-  "Player_SaveLoadoutToPersistentStorage": "0x2b1127c",
-  "StartLevel": "0x2891798",
-  "StartLevelAtSpawn": "0x2891800",
-  "ResetLevelAtSpawn": "0x2891634",
+  "player_get_first_valid": "0x00f3d4f0",
+
   "game_revert": "0x2684e78",
   "game_save_fast": "0x2a7a81c",
   "unit_impervious": "0x2ea0214",
@@ -47,5 +25,36 @@
   "Unit_RefillAmmo": "0x02af8724",
   "Unit_RefillGrenades": "0x02af8858",
   "unit_get_player": "0x02ab7eec",
-  "CheckpointInfoAddress": "0x446a290" // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
+  "object_cannot_die": "0x0070750c",
+
+  "CheckpointInfoAddress": "0x446a290", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
+
+  "object_set_shield": "0x293a7a8",
+  "Persistence_SetLongKeyForParticipant": "0xd4c388",
+  "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
+  "Persistence_TryCreateKeyFromString": "0xc321d4",
+  "Persistence_SetLongKey": "0xddf390",
+  "Persistence_GetLongKey": "0x00aaaa00",
+  "Persistence_GetLongKeyForParticipant": "0x00f3e4ac",
+  "Persistence_RemoveLongKeyOverride": "0x02aaf9d8",
+  "Persistence_RemoveLongKeyOverrideForParticipant": "0x02aaf420",
+  "Persistence_TrackProgress": "0x00bd0e10",
+
+
+  "Persistence_BatchGetBoolKeys": "0x1bc6c30",
+  "Persistence_BatchGetBoolKeysForParticipant": "0x1bc6830",
+  "Persistence_BatchGetByteKeys": "0x1bc6d80",
+  "Persistence_BatchGetByteKeysForParticipant": "0x1bc6910",
+  "Persistence_BatchGetLongKeys": "0x1bc6810",
+  "Persistence_BatchGetLongKeysForParticipant": "0x1bc62d0",
+
+  "get_string_id_from_string": "0x00c30a04",
+
+  "RuntimePersistenceChain": [ "0x04B325E8", "0x18", "0xE100" ],
+
+
+
+  "Object_GetPosition": "0x004f3314",
+  "Engine_CreateObject": "0x0070eb78"
+
 }

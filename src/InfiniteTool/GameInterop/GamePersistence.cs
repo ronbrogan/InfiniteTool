@@ -16,7 +16,7 @@ namespace InfiniteTool.GameInterop
         private readonly ILogger<GamePersistence> logger;
         private InfiniteOffsets offsets;
         private ArenaAllocator? allocator;
-        private bool NeedsReBootstrapped = false;
+        private bool NeedsReBootstrapped = true;
         private string[] persistenceKeys = InteropConstantData.PersistenceKeys.Keys.ToArray();
         private Dictionary<string, uint> stringToKeyMap = new();
         private IRemoteProcess process => this.instance.RemoteProcess;
@@ -34,18 +34,16 @@ namespace InfiniteTool.GameInterop
         private void Instance_OnAttachHandler(object sender, EventArgs? args)
         {
             this.offsets = this.instance.GetCurrentOffsets();
-            this.Bootstrap();
+            //this.Bootstrap();
         }
 
         public void Bootstrap()
         {
-            this.NeedsReBootstrapped = false;
-
             if (this.allocator != null)
             {
                 try
                 {
-                    lock(this.allocator)
+                    lock (this.allocator)
                     {
                         this.allocator.Dispose();
                     }
@@ -53,50 +51,76 @@ namespace InfiniteTool.GameInterop
                 catch { }
             }
 
-            var allocator = new ArenaAllocator(this.process, 4 * 1024 * 1024); // 4MB working area
 
-            var keyList = allocator.AllocateList<nint>(persistenceKeys.Length);
-
-            var inList = allocator.AllocateList<nint>(persistenceKeys.Length);
-            inList.AddAsciiStrings(allocator, persistenceKeys);
-
-            this.process.CallFunction<nint>(
-                this.offsets.Persistence_BatchTryCreateKeysFromStrings, 
-                0x0, 
-                keyList.Address, 
-                inList.Address);
-
-            keyList.SyncFrom();
-
-            var items = keyList.Count();
-
-            if(items != persistenceKeys.Length)
+            try
             {
-                this.logger.LogWarning($"Mismatch of string to key results, sent {persistenceKeys.Length}, got back {items}");
-            }
+                var allocator = new ArenaAllocator(this.process, 4 * 1024 * 1024); // 4MB working area
 
-            stringToKeyMap.Clear();
-            var values = keyList.GetValues(0, (int)items);
-            for (var i = 0; i < items; i++)
+                var keyList = allocator.AllocateList<nint>(persistenceKeys.Length);
+
+                var inList = allocator.AllocateList<nint>(persistenceKeys.Length);
+                inList.AddAsciiStrings(allocator, persistenceKeys);
+                inList.SyncTo();
+
+                this.instance.PrepareForScriptCalls();
+
+                this.process.CallFunction<nint>(
+                    this.offsets.Persistence_BatchTryCreateKeysFromStrings,
+                    0x0,
+                    keyList.Address,
+                    inList.Address);
+
+                keyList.SyncFrom();
+
+                var items = keyList.Count();
+
+                if (items != persistenceKeys.Length)
+                {
+                    this.logger.LogWarning($"Mismatch of string to key results, sent {persistenceKeys.Length}, got back {items}");
+                }
+
+                stringToKeyMap.Clear();
+                var values = keyList.GetValues(0, (int)items);
+                for (var i = 0; i < items; i++)
+                {
+                    var val = values[i];
+                    var key = unchecked((uint)val);
+                    var found = (byte)(val >> 32);
+
+                    if (found == 1)
+                    {
+                        stringToKeyMap[persistenceKeys[i]] = key;
+                    }
+                    else
+                    {
+                        this.logger.LogWarning($"Miss on string to key, sent '{persistenceKeys[i]}', got back {val:x16}");
+                        this.NeedsReBootstrapped = true;
+                    }
+                }
+
+                allocator.Reclaim(zero: true);
+
+                this.allocator = allocator;
+                this.NeedsReBootstrapped = false;
+            }
+            catch
             {
-                var val = values[i];
-                var key = unchecked((uint)val);
-                var found = (byte)(val >> 32);
 
-                if(found == 1)
-                {
-                    stringToKeyMap[persistenceKeys[i]] = key;
-                }
-                else
-                {
-                    this.logger.LogWarning($"Miss on string to key, sent '{persistenceKeys[i]}', got back {val:x16}");
-                    this.NeedsReBootstrapped = true;
-                }
             }
+        }
 
-            allocator.Reclaim(zero: true);
+        public void SetSpartanPoints(int value)
+        {
+            this.logger.LogInformation("Spartan points requested");
+            this.instance.PrepareForScriptCalls();
+            var player = process.CallFunction<nint>(this.offsets.player_get, 0).Item2;
 
-            this.allocator = allocator;
+            var participant = process.CallFunction<nint>(this.offsets.unit_get_player, player).Item2;
+
+            var persistenceKey = GetPersistenceKey("Equipment_Points");
+
+
+            process.CallFunction<nint>(this.offsets.Persistence_SetLongKeyForParticipant, participant, (nint)persistenceKey, (nint)20);
         }
 
         private void EnsureBoostrapped()
@@ -107,6 +131,11 @@ namespace InfiniteTool.GameInterop
             }
         }
 
+        public uint GetPersistenceKey(string keyString)
+        {
+            return this.stringToKeyMap[keyString];
+        }
+
         public List<ProgressionEntry> GetAllProgress()
         {
             this.EnsureBoostrapped();
@@ -115,7 +144,7 @@ namespace InfiniteTool.GameInterop
 
             var keys = this.stringToKeyMap.ToArray();
 
-            this.PrepareForScriptCalls();
+            this.instance.PrepareForScriptCalls();
 
             lock (this.allocator)
             {
@@ -131,15 +160,15 @@ namespace InfiniteTool.GameInterop
                 var participantBytes = allocator.AllocateList<short>(persistenceKeys.Length);
                 var participantLongs = allocator.AllocateList<uint>(persistenceKeys.Length);
 
-                var participantId = (nint)(CurrentParticipantId << 16);
+                //var participantId = (nint)(CurrentParticipantId << 16);
 
                 process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeys, 0x0, globalBools, keyList);
                 process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeys, 0x0, globalBytes, keyList);
                 process.CallFunction<nint>(this.offsets.Persistence_BatchGetLongKeys, 0x0, globalLongs, keyList);
 
-                process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeysForParticipant, 0x0, participantBools, participantId, keyList);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeysForParticipant, 0x0, participantBytes, participantId, keyList);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchGetLongKeysForParticipant, 0x0, participantLongs, participantId, keyList);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeysForParticipant, 0x0, participantBools, participantId, keyList);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeysForParticipant, 0x0, participantBytes, participantId, keyList);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchGetLongKeysForParticipant, 0x0, participantLongs, participantId, keyList);
                 
                 globalBools.SyncFrom();
                 globalBytes.SyncFrom();
@@ -256,7 +285,7 @@ namespace InfiniteTool.GameInterop
 
                 var participantId = (nint)(CurrentParticipantId << 16);
 
-                this.PrepareForScriptCalls();
+                this.instance.PrepareForScriptCalls();
 
                 // Clear overrides
                 process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrides, 0x0, DiscardList(), boolKeys);
@@ -285,24 +314,6 @@ namespace InfiniteTool.GameInterop
                 // Body isn't required as outputs seem to be allocated by the engine?
                 return allocator.Allocate(BlamEngineList<nint>.GetRequiredSize(0).header);
             }
-        }
-
-        private void PrepareForScriptCalls()
-        {
-            for(var i = 64; i < 350; i++)
-            {
-                process.SetTlsValue(i, instance.ReadMainTebPointer(i));
-            }
-
-
-            //process.Read(this.offsets.ParticipantDatum_TlsIndexOffset, out int participantDatumIndex);
-            //var participantDatumLocation = instance.ReadMainTebPointer(participantDatumIndex);
-            //
-            //
-            //process.ReadAt(participantDatumLocation + 0x78, out nint participantAddress);
-            //process.ReadAt(participantAddress, out uint participantId);
-            //
-            //this.CurrentParticipantId = participantId;
         }
 
         public class ProgressionEntry : INotifyPropertyChanged

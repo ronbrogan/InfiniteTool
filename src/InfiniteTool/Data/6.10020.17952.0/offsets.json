@@ -1,0 +1,14 @@
+{
+  "ThreadTable": "0x3e93930",
+  "CheckpointInfoAddress": "0x4159490", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
+
+  "players": "0x01037688",
+  "player_get": "0x023bde20",
+  "game_revert": "0x020b9ba8",
+  "game_save_fast": "0x0253f53c",
+  "Object_SetObjectCannotTakeDamage": "0x025cf3c4",
+  "Unit_RefillAmmo": "0x025d0be0",
+  "Unit_RefillGrenades": "0x025d0d14",
+  "unit_get_player": "0x0258d598",
+  "object_cannot_die": "0x009af328"
+}

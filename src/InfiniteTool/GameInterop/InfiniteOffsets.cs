@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using Superintendent.Core.Remote;
+using System;
+using System.Text.Json.Serialization;
 
 namespace InfiniteTool
 {
@@ -70,6 +72,8 @@ namespace InfiniteTool
         
         public nint player_get { get; set; } // Integer -> PlayerOrUnit
 
+        public nint player_get_first_valid { get; set; }// -> PlayerOrUnit
+
         public nint camera_set_mode { get; set; } // PlayerOrUnit, Integer32->Void
 
         public nint object_cannot_take_damage { get; set; }
@@ -83,5 +87,46 @@ namespace InfiniteTool
         public nint Unit_RefillGrenades { get; set; }
 
         public nint CheckpointInfoAddress { get; set; }
+
+        public nint Object_SetObjectCannotTakeDamage { get; set; }
+
+        public nint unit_get_player { get; set; } // PlayerOrUnit->Participant
+
+        public nint Persistence_SetLongKeyForParticipant { get; set; } // PersistenceKey,Participant,Integer32->Boolean
+
+        public nint Persistence_TryCreateKeyFromString { get; set; }
+
+        public nint Persistence_RemoveLongKeyOverride { get; set; }
+
+        public nint Persistence_RemoveLongKeyOverrideForParticipant { get; set; }
+
+        public nint Persistence_TrackProgress { get; set; }
+
+        public nint Persistence_SetLongKey { get; set; }
+
+        public nint Persistence_GetLongKeyForParticipant { get; set; }
+
+        public nint Persistence_GetLongKey { get; set; }
+
+        public nint Object_GetPosition { get; set; }
+
+        public nint Engine_CreateObject { get; set; }
+
+        public nint[] RuntimePersistenceChain { get; set; }
+
+        public nint ResolveRuntimePersistenceChain(IRemoteProcess proc)
+        {
+            if (RuntimePersistenceChain.Length == 0)
+                throw new ArgumentException("Bad point chain");
+
+            proc.Read<nint>(RuntimePersistenceChain[0], out var curr);
+
+            for (var i = 1; i < RuntimePersistenceChain.Length; i++)
+            {
+                proc.ReadAt<nint>(curr + RuntimePersistenceChain[i], out curr);
+            }
+
+            return curr;
+        }
     }
 }

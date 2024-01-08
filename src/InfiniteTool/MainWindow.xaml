@@ -7,7 +7,7 @@
         xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         xmlns:game="clr-namespace:InfiniteTool.GameInterop"
         mc:Ignorable="d"
-        Title="Infinite Tool" Height="325" Width="250">
+        Title="Infinite Tool" Height="325" Width="400">
 
     <Window.Resources>
         <wpfutil:HexValConverter x:Key="HexValConverter"></wpfutil:HexValConverter>
@@ -63,7 +63,80 @@
                     </DataGrid>-->
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Progression Data" Visibility="Hidden">
+            <TabItem Header="Loadout">
+                <DockPanel>
+                    <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
+                        <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
+                        <Button x:Name="bindable_weap" Content="Weapon" HorizontalAlignment="Center" Margin="3" Click="weapon_Click"/>
+
+                    </StackPanel>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="REPL" Visibility="Visible">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Function 0x"></Label>
+                                <TextBox x:Name="func" Width="150" Text="00f3d4f0"></TextBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Arg0 (rcx) 0x"></Label>
+                                <TextBox x:Name="arg0" Width="150"></TextBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Arg1 (rdx) 0x"></Label>
+                                <TextBox x:Name="arg1" Width="150"></TextBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Arg2 (r8) 0x"></Label>
+                                <TextBox x:Name="arg2" Width="150"></TextBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Arg3 (r9) 0x"></Label>
+                                <TextBox x:Name="arg3" Width="150"></TextBox>
+                            </StackPanel>
+                            <Button Content="Execute" Margin="2" Click="replInvoke_Click"></Button>
+                            <TextBox x:Name="replResult" Text="$" Margin="2" Height="65" IsReadOnly="true" TextWrapping="WrapWithOverflow" ></TextBox>
+                        </StackPanel>
+                        
+                    </DockPanel>
+                    
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Memory" Visibility="Visible">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Data 1 0x"></Label>
+                                <TextBox x:Name="data1" Width="150"></TextBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Data 2 0x"></Label>
+                                <TextBox x:Name="data2" Width="150"></TextBox>
+                            </StackPanel>
+                            
+                            <Button Content="Write" Margin="2" Click="writeInvoke_Click"></Button>
+                            <TextBox x:Name="writeResult" Text="$" Margin="2" Height="65" IsReadOnly="true" TextWrapping="WrapWithOverflow" ></TextBox>
+                        </StackPanel>
+
+                    </DockPanel>
+
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Dump" Visibility="Visible">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                            <Button Content="Dump Exe" Margin="2" Click="dumpExe_Click"></Button>
+                        </StackPanel>
+
+                    </DockPanel>
+
+                </DockPanel>
+            </TabItem>
+            <!--<TabItem Header="Progression Data" Visibility="Visible">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
@@ -71,7 +144,7 @@
                             <Button Content="Load from File" Margin="2" Click="loadProgression_Click"></Button>
                         </StackPanel>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <!--<CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>-->
+                            --><!--<CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>--><!--
                             <Button Content="Refresh" Margin="5,0,0,0" Click="refreshPersistence_Click"></Button>
                         </StackPanel>
 
@@ -85,7 +158,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
-            </TabItem>
+            </TabItem>-->
             <!--<TabItem Header="Speedrun">
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock TextAlignment="Center">
