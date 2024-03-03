@@ -1,0 +1,1261 @@
+{
+  "Weapons": [
+    {
+      "Type": "weapon",
+      "Name": "levels\\assets\\shiva\\banished\\_dungeon\\banished_ship\\ban_ship_elevator_fusion_coil_a\\ban_ship_elevator_fusion_coil_a.weapon",
+      "Id": 2377975575
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\brute_chieftain\\weapon\\gatling_mortar.weapon",
+      "Id": 2675615141
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\brute\\shield\\shield.weapon",
+      "Id": 929635883
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\hunter\\hunter_fuel_rod\\hunter_fuel_rod_berserk_banished.weapon",
+      "Id": 3100418420
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\hunter\\hunter_fuel_rod\\hunter_fuel_rod_berserk.weapon",
+      "Id": 4313499
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\hunter\\hunter_fuel_rod\\hunter_fuel_rod_primary_banished.weapon",
+      "Id": 1105425180
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\hunter\\hunter_fuel_rod\\hunter_fuel_rod_primary.weapon",
+      "Id": 3845110
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\inquisitor\\weapons\\rising_shot\\rising_shot.weapon",
+      "Id": 2129815417
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_autoturret\\weapons\\lightning_grenade_launcher.weapon",
+      "Id": 4067714184
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_boss\\weapons\\beam\\proto_hardlight_sentinel_beam_boss.weapon",
+      "Id": 648218926
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_boss\\weapons\\gatling_mortar\\boss_gatling_mortar.weapon",
+      "Id": 4121775765
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_boss\\weapons\\launcher.weapon",
+      "Id": 3841769636
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_boss\\weapons\\plasma\\sentinel_boss_plasma.weapon",
+      "Id": 1486307588
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_boss\\weapons\\rocket\\boss_heatwave.weapon",
+      "Id": 1532497346
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel_boss\\weapons\\rocket\\boss_spnker.weapon",
+      "Id": 2690792757
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\characters\\sentinel\\bubble_shield\\bubble_shield.weapon",
+      "Id": 661638877
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\auto_turret\\weapon\\auto_turret.weapon",
+      "Id": 200804350
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\carriable\\primitive_carriable_mp.weapon",
+      "Id": 2945225578
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\carriable\\primitive_carriable.weapon",
+      "Id": 2815601990
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\extraction_device\\extraction_device.weapon",
+      "Id": 1540699705
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\forge_fusion_coil\\primitive_forge_fusion_coil_mp.weapon",
+      "Id": 3924295545
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\forge_fusion_coil\\primitive_forge_fusion_coil.weapon",
+      "Id": 776972982
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\fusion_coil\\primitive_fusion_coil_mp.weapon",
+      "Id": 493070541
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\primitives\\fusion_coil\\primitive_fusion_coil.weapon",
+      "Id": 3025038360
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\sandbox_objects\\turrets\\aa_gun\\aa_gun_weapon\\weapon\\openworld_aa_gun_turret.weapon",
+      "Id": 66757081
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\sandbox_objects\\turrets\\automated_turret_emplacement\\turret_tops\\automated_turret_ban\\weapon\\automated_turret_ban.weapon",
+      "Id": 3092038945
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\banshee\\weapons\\banished_banshee_bomb_launcher\\banished_banshee_bomb_launcher.weapon",
+      "Id": 2231960303
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\banshee\\weapons\\banished_banshee_dual_cannon\\banished_banshee_duel_cannon.weapon",
+      "Id": 2692048949
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\banshee\\weapons\\banshee_bomb_launcher\\banshee_bomb_launcher.weapon",
+      "Id": 43625
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\banshee\\weapons\\banshee_dual_cannon\\banshee_dual_cannon.weapon",
+      "Id": 43624
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\brute_chopper\\weapon\\boss_01_chopper_spiker.weapon",
+      "Id": 2105355967
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\brute_chopper\\weapon\\boss_02_chopper_healing.weapon",
+      "Id": 3219810857
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\brute_chopper\\weapon\\chopper_dual_cannon.weapon",
+      "Id": 3020854808
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\ghost\\weapons\\banished_ghost_dual_cannon\\banished_ghost_dual_cannon.weapon",
+      "Id": 3265372793
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\ghost\\weapons\\boss_01_ghost_primary\\boss_01_ghost_primary.weapon",
+      "Id": 1788618914
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\ghost\\weapons\\boss_02_ghost_primary\\boss_02_ghost_primary.weapon",
+      "Id": 3520178809
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\ghost\\weapons\\ghost_dual_cannon\\ghost_dual_cannon.weapon",
+      "Id": 87093
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\phantom\\turrets\\phantom_chin_gun\\weapons\\phantom_chin_gun.weapon",
+      "Id": 57561
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\gatling_mortar\\weapon\\gatling_mortar_mounted\\gatling_mortar_mounted_mp.weapon",
+      "Id": 2654935345
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\gatling_mortar\\weapon\\gatling_mortar_mounted\\gatling_mortar_mounted.weapon",
+      "Id": 1295615871
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\plasma_turret\\weapon\\plasma_turret_detached\\storm_plasma_turret_mp.weapon",
+      "Id": 3122508175
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\plasma_turret\\weapon\\plasma_turret_detached\\storm_plasma_turret.weapon",
+      "Id": 9910
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\plasma_turret\\weapon\\plasma_turret_mounted\\plasma_turret_mounted_mp.weapon",
+      "Id": 3550005720
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\plasma_turret\\weapon\\plasma_turret_mounted\\plasma_turret_mounted_warthog.weapon",
+      "Id": 2982097238
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\plasma_turret\\weapon\\plasma_turret_mounted\\plasma_turret_mounted.weapon",
+      "Id": 9921
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\shade\\weapons\\shade_plasma_cannon\\weapons\\aa_shade_shock_flak.weapon",
+      "Id": 3188198167
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\shade\\weapons\\shade_plasma_cannon\\weapons\\armored_shade_mortar.weapon",
+      "Id": 3384373934
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\shade\\weapons\\shade_plasma_cannon\\weapons\\banished_shade_plasma_cannon.weapon",
+      "Id": 1144432518
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\shade\\weapons\\shade_plasma_cannon\\weapons\\boss_01_shade_blast.weapon",
+      "Id": 2026809716
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\shade\\weapons\\shade_plasma_cannon\\weapons\\boss_01_shade_mortar.weapon",
+      "Id": 2869466083
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\turrets\\shade\\weapons\\shade_plasma_cannon\\weapons\\shade_plasma_cannon.weapon",
+      "Id": 1942365966
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\wraith\\turrets\\wraith_anti_infantry\\weapon\\wraith_anti_infantry.weapon",
+      "Id": 1782760
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\wraith\\turrets\\wraith_boss_01_turret\\weapon\\wraith_boss_01_turret.weapon",
+      "Id": 2898505265
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\covenant\\wraith\\turrets\\wraith_mortar_reach\\weapon\\wraith_mortar_reach.weapon",
+      "Id": 303775753
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\forerunner\\turrets\\forerunner_beam_autoturret\\weapon\\forerunner_beam_autoturret.weapon",
+      "Id": 4229767
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\cougar\\weapons\\cougar_grenade_launcher\\cougar_grenade_launcher.weapon",
+      "Id": 948857053
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\mongoose\\weapons\\mongoose_cannon\\mongoose_cannon.weapon",
+      "Id": 4351886
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\mongoose\\weapons\\mongoose_horn\\mongoose_horn.weapon",
+      "Id": 54411743
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\pelican\\weapons\\pelican_chaingun.weapon",
+      "Id": 1466536476
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\scorpion\\turrets\\scorpion_anti_infantry\\weapon\\scorpion_anti_infantry.weapon",
+      "Id": 89299
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\scorpion\\turrets\\scorpion_cannon\\weapon\\scorpion_cannon.weapon",
+      "Id": 89338
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\scorpion\\turrets\\scorpion_cannon\\weapon\\scorpion_tail\\scorpion_tail.weapon",
+      "Id": 2996950319
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\scorpion\\turrets\\scorpion_cannon\\weapons\\hannibal_scorpion_laser\\hannibal_scorpion_laser.weapon",
+      "Id": 684034569
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\jorge_chaingun\\jorge_chaingun.weapon",
+      "Id": 2878132782
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_chaingun\\detached_chaingun\\detached_chaingun_mp.weapon",
+      "Id": 3549837625
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_chaingun\\detached_chaingun\\detached_chaingun.weapon",
+      "Id": 4151332
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_chaingun\\weapon\\unsc_chaingun_mounted\\unsc_chaingun_mounted_mp.weapon",
+      "Id": 2418454868
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_chaingun\\weapon\\unsc_chaingun_mounted\\unsc_chaingun_mounted.weapon",
+      "Id": 4151749
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_gauss\\detached_gauss\\detached_gauss.weapon",
+      "Id": 4269172
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_gauss\\weapon\\proto_hotrod_gun.weapon",
+      "Id": 3518289637
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\unsc_rocket\\detached_rocket\\detached_rocket.weapon",
+      "Id": 4310243
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\warthog\\weapons\\hog_horn.weapon",
+      "Id": 42172
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\warthog\\weapons\\turrets\\warthog_chaingun\\weapon\\unsc_chaingun_mounted\\warthog_chaingun_mounted.weapon",
+      "Id": 208656657
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\warthog\\weapons\\turrets\\warthog_gauss\\weapon\\warthog_gauss.weapon",
+      "Id": 2252837466
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\warthog\\weapons\\turrets\\warthog_rocket_launcher\\weapon\\warthog_rocket_lockon.weapon",
+      "Id": 3352627474
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\wasp\\weapons\\stinger_wasp_shock_bomb.weapon",
+      "Id": 3134027007
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\wasp\\weapons\\stinger_wasp_shotgun.weapon",
+      "Id": 2447760756
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\wasp\\weapons\\wasp_chaingun.weapon",
+      "Id": 3552839661
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\vehicles\\human\\wasp\\weapons\\wasp_missile_launcher.weapon",
+      "Id": 292707780
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\brute_fist\\brute_fist.weapon",
+      "Id": 1625581646
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\energy_sword\\energy_sword_mp.weapon",
+      "Id": 1341363070
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\energy_sword\\energy_sword.weapon",
+      "Id": 44604
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\golf_club\\golf_club.weapon",
+      "Id": 1302674363
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\gravity_hammer_mp.weapon",
+      "Id": 2216347109
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\gravity_hammer.weapon",
+      "Id": 32486
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\jackal_shield\\jackal_shield_major.weapon",
+      "Id": 10034
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\jackal_shield\\jackal_shield.weapon",
+      "Id": 9645
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\unarmed_ai\\unarmed_ai.weapon",
+      "Id": 463681649
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\melee\\unarmed\\unarmed.weapon",
+      "Id": 31913
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\multiplayer\\new_flag\\new_flag.weapon",
+      "Id": 14735
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\multiplayer\\odd_ball\\odd_ball.weapon",
+      "Id": 1859453025
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\multiplayer\\proto_flag\\proto_flag.weapon",
+      "Id": 708387624
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\multiplayer\\skull\\skull.weapon",
+      "Id": 1530156
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\multiplayer\\skull\\skullgungame.weapon",
+      "Id": 1737103770
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\magnum\\magnum_ctf.weapon",
+      "Id": 91157
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\needler\\needler_mp.weapon",
+      "Id": 3040056702
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\needler\\needler.weapon",
+      "Id": 32488
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\plasma_pistol\\plasma_pistol_mp.weapon",
+      "Id": 3277072710
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\plasma_pistol\\plasma_pistol.weapon",
+      "Id": 16823
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\sidearm_pistol\\sidearm_pistol_mp.weapon",
+      "Id": 4094171407
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\sidearm_pistol\\sidearm_pistol.weapon",
+      "Id": 3873928104
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\pistol\\spiker\\spiker.weapon",
+      "Id": 2841543337
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\blade_gauntlets\\blade_gauntlets.weapon",
+      "Id": 765147384
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_arc_charger\\proto_arc_charger.weapon",
+      "Id": 493670441
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_arc_zapper\\proto_arc_zapper_mp.weapon",
+      "Id": 2226989549
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_arc_zapper\\proto_arc_zapper.weapon",
+      "Id": 3858736649
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_combat_shotgun\\proto_combat_shotgun_mp.weapon",
+      "Id": 3055147082
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_combat_shotgun\\proto_combat_shotgun.weapon",
+      "Id": 2666011502
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_hardlight_sentinel_beam\\proto_hardlight_sentinel_beam_mp.weapon",
+      "Id": 2694143646
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_hardlight_sentinel_beam\\proto_hardlight_sentinel_beam.weapon",
+      "Id": 3428927634
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_mg\\proto_mg.weapon",
+      "Id": 1795461700
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_neutral\\proto_neutral.weapon",
+      "Id": 2419042494
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_skewer\\proto_skewer_mp.weapon",
+      "Id": 1629207268
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_skewer\\proto_skewer.weapon",
+      "Id": 4064672389
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_slag_maker\\proto_slag_maker.weapon",
+      "Id": 1074213135
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_spike_revolver\\proto_spike_revolver_mp.weapon",
+      "Id": 2157411237
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_spike_revolver\\proto_spike_revolver.weapon",
+      "Id": 2183797265
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_volt_action\\proto_volt_action_mp.weapon",
+      "Id": 2475141305
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_volt_action\\proto_volt_action_sentinel_boss.weapon",
+      "Id": 2899399105
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\proto\\proto_volt_action\\proto_volt_action.weapon",
+      "Id": 2665873173
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\assault_rifle_mp.weapon",
+      "Id": 1220648237
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\assault_rifle.weapon",
+      "Id": 34197
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\br\\br_mp.weapon",
+      "Id": 723002581
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\br\\br_new.weapon",
+      "Id": 3205331469
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\br\\br.weapon",
+      "Id": 34195
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\cindershot\\cindershot_mp.weapon",
+      "Id": 587483057
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\cindershot\\cindershot.weapon",
+      "Id": 4175131494
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\commando_rifle\\commando_rifle_mp.weapon",
+      "Id": 4254618956
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\commando_rifle\\commando_rifle_nhm.weapon",
+      "Id": 1619811097
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\commando_rifle\\commando_rifle.weapon",
+      "Id": 1856090193
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\heatwave\\heatwave_mp.weapon",
+      "Id": 717865727
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\heatwave\\heatwave.weapon",
+      "Id": 1410851380
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\light_rifle\\light_rifle.weapon",
+      "Id": 54214
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\mlrs\\mlrs_mp.weapon",
+      "Id": 1987950957
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\mlrs\\mlrs.weapon",
+      "Id": 3988738
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\provoker\\provoker_mp.weapon",
+      "Id": 3272443847
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\provoker\\provoker.weapon",
+      "Id": 95601772
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\pulse_carbine\\pulse_carbine_mp.weapon",
+      "Id": 810045094
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\pulse_carbine\\pulse_carbine.weapon",
+      "Id": 541620671
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\shotgun\\combat_shotgun.weapon",
+      "Id": 3283023285
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\shotgun\\shotgun.weapon",
+      "Id": 34199
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\sniper_rifle\\sniper_rifle_mp.weapon",
+      "Id": 169448124
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\sniper_rifle\\sniper_rifle.weapon",
+      "Id": 34196
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\stalker_rifle\\stalker_rifle_mp.weapon",
+      "Id": 3673265095
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\rifle\\stalker_rifle\\stalker_rifle.weapon",
+      "Id": 754106321
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\support_high\\fuel_rod_cannon\\fuel_rod_cannon.weapon",
+      "Id": 511032
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\support_high\\spnker_rocket_launcher_olympus\\spnker_rocket_launcher_olympus_mp.weapon",
+      "Id": 1907034668
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\support_high\\spnker_rocket_launcher_olympus\\spnker_rocket_launcher_olympus.weapon",
+      "Id": 2731587856
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\turret\\gatling_mortar\\gatling_mortar_fp.weapon",
+      "Id": 3725038924
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\turret\\gatling_mortar\\gatling_mortar_mp.weapon",
+      "Id": 4233572071
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\turret\\gatling_mortar\\gatling_mortar.weapon",
+      "Id": 1026603349
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\turret\\hunter_arm\\hunter_arm_spew.weapon",
+      "Id": 4218349328
+    },
+    {
+      "Type": "weapon",
+      "Name": "objects\\weapons\\turret\\hunter_arm\\hunter_arm.weapon",
+      "Id": 3346568489
+    }
+  ],
+  "WeaponConfigs": [
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\primitives\\fusion_coil\\primitive_fusion_coil_hardlight.weapon_configuration",
+      "Id": 3594026921
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\primitives\\fusion_coil\\primitive_fusion_coil_kinetic.weapon_configuration",
+      "Id": 3045179154
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\primitives\\fusion_coil\\primitive_fusion_coil_plasma.weapon_configuration",
+      "Id": 2595401391
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\primitives\\fusion_coil\\primitive_fusion_coil_shock.weapon_configuration",
+      "Id": 1690363696
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\covenant\\brute_chopper\\weapon\\configurations\\boss_02_chopper_healing_v002_singularity.weapon_configuration",
+      "Id": 16004110
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\covenant\\wraith\\configurations\\attachments\\banished_wraith\\banished_wraith_anti_infantry.weapon_configuration",
+      "Id": 2930025326
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\forerunner\\turrets\\forerunner_beam_autoturret\\weapon\\configurations\\forerunner_turret_sentinel.weapon_configuration",
+      "Id": 1684381118
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\configurations\\oni_chaingun.weapon_configuration",
+      "Id": 1302371648
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\configurations\\oni_gauss.weapon_configuration",
+      "Id": 3605301835
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\configurations\\oni_rocket.weapon_configuration",
+      "Id": 85300124
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\configurations\\sos_chaingun.weapon_configuration",
+      "Id": 2970058376
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\configurations\\vespin_rocket.weapon_configuration",
+      "Id": 1875857344
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\vehicles\\human\\turrets\\unsc_turret\\weapons\\jorge_chaingun\\configurations\\jorges_chaingun.weapon_configuration",
+      "Id": 850175516
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\elite_jega_energy_sword.weapon_configuration",
+      "Id": 3842393328
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\energy_sword_infected.weapon_configuration",
+      "Id": 481960529
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\energy_sword_v001_switchblade.weapon_configuration",
+      "Id": 3450537398
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\energy_sword_v002_gravity.weapon_configuration",
+      "Id": 694273800
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\energy_sword_v003_arbiter_campaign.weapon_configuration",
+      "Id": 2711681446
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\energy_sword_v003_arbiter.weapon_configuration",
+      "Id": 1651897163
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\energy_sword_v003_sos_campaign.weapon_configuration",
+      "Id": 224955561
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\energy_sword\\configurations\\striker_energy_sword.weapon_configuration",
+      "Id": 4033705611
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\configurations\\escharums_axe_gravity_hammer.weapon_configuration",
+      "Id": 2828659860
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\configurations\\frontlines_gavity_hammer.weapon_configuration",
+      "Id": 3699185943
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\configurations\\gravity_hammer_v001_fast_swing.weapon_configuration",
+      "Id": 1889851118
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\configurations\\gravity_hammer_v002_emp.weapon_configuration",
+      "Id": 1528208685
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\melee\\gravity_hammer\\configurations\\gravity_hammer_v003_shockwave.weapon_configuration",
+      "Id": 453190690
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\multiplayer\\proto_flag\\configurations\\proto_flag_v001_fast_swing.weapon_configuration",
+      "Id": 2483407361
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\needler\\configurations\\needler_v001_lightweight.weapon_configuration",
+      "Id": 2244023402
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\needler\\configurations\\needler_v002_explosive.weapon_configuration",
+      "Id": 2866300673
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\needler\\configurations\\seeker_needler.weapon_configuration",
+      "Id": 1353951992
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\plasma_pistol\\configurations\\plasma_pistol_v001_overcharge.weapon_configuration",
+      "Id": 681723994
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\plasma_pistol\\configurations\\plasma_pistol_v002_singularity.weapon_configuration",
+      "Id": 69879337
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\plasma_pistol\\configurations\\unlocked_plasma_pistol.weapon_configuration",
+      "Id": 2780472315
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\pistol\\sidearm_pistol\\configurations\\elite_sidearm_pistol.weapon_configuration",
+      "Id": 3631395450
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_arc_zapper\\configurations\\discharge_arc_zapper.weapon_configuration",
+      "Id": 320323477
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_combat_shotgun\\configurations\\choke_shotgun.weapon_configuration",
+      "Id": 889971387
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_hardlight_sentinel_beam\\configurations\\heatrod_hardlight_sentinel_beam.weapon_configuration",
+      "Id": 4223447479
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_skewer\\configurations\\explosive_skewer.weapon_configuration",
+      "Id": 356548330
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_spike_revolver\\configurations\\blaster_spike_revolver.weapon_configuration",
+      "Id": 3084144170
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_spike_revolver\\configurations\\legendary_spike_revolver.weapon_configuration",
+      "Id": 1304509706
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\proto\\proto_volt_action\\configurations\\overclocked_volt_action.weapon_configuration",
+      "Id": 4038578779
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_2x_sight.weapon_configuration",
+      "Id": 3369508663
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_3x_sight.weapon_configuration",
+      "Id": 3938254402
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_bayonet_hardlight.weapon_configuration",
+      "Id": 2712858584
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_bayonet.weapon_configuration",
+      "Id": 940505268
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_extended_mag.weapon_configuration",
+      "Id": 560474783
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_forerunner_barrel.weapon_configuration",
+      "Id": 623648819
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_laser_targeter.weapon_configuration",
+      "Id": 3140960732
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_long_barrel.weapon_configuration",
+      "Id": 4002270788
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_recoil_compensator.weapon_configuration",
+      "Id": 417146972
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_default_sight_silencer.weapon_configuration",
+      "Id": 3319463696
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\assault_rifle\\configurations\\ar_tactical.weapon_configuration",
+      "Id": 1739183068
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_3x_sight.weapon_configuration",
+      "Id": 3756946
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_classic_sight.weapon_configuration",
+      "Id": 1057812594
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_comp_bayonet.weapon_configuration",
+      "Id": 4020795500
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_bayonet_hardlight.weapon_configuration",
+      "Id": 3361328521
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_bayonet.weapon_configuration",
+      "Id": 350799112
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_extended_mag.weapon_configuration",
+      "Id": 1802861560
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_forerunner_barrel.weapon_configuration",
+      "Id": 2452778005
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_laser_targeter.weapon_configuration",
+      "Id": 596987131
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_long_barrel.weapon_configuration",
+      "Id": 2974655265
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_recoil_compensator.weapon_configuration",
+      "Id": 1582434178
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_default_sight_silencer.weapon_configuration",
+      "Id": 1806638186
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_dual_zoom_sight.weapon_configuration",
+      "Id": 2327638880
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\br\\configurations\\br_scout.weapon_configuration",
+      "Id": 1317412252
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\cindershot\\configurations\\overcooked_cindershot.weapon_configuration",
+      "Id": 3165905359
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\commando_rifle\\configurations\\suburban_commando.weapon_configuration",
+      "Id": 1261723843
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_2x_sight.weapon_configuration",
+      "Id": 2437307464
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_bayonet_hardlight.weapon_configuration",
+      "Id": 1512877617
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_bayonet.weapon_configuration",
+      "Id": 1405828088
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_extended_mag.weapon_configuration",
+      "Id": 2302086837
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_forerunner_barrel.weapon_configuration",
+      "Id": 682463193
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_laser_targeter.weapon_configuration",
+      "Id": 1427048522
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_long_barrel.weapon_configuration",
+      "Id": 3229924957
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_recoil_compensator.weapon_configuration",
+      "Id": 1256342358
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_default_sight_silencer.weapon_configuration",
+      "Id": 659343669
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\dmr\\configurations\\dmr_dual_zoom_sight.weapon_configuration",
+      "Id": 174208539
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\heatwave\\configurations\\heatwaveimusprime.weapon_configuration",
+      "Id": 1788112426
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\heatwave\\configurations\\smartbounce_heatwave.weapon_configuration",
+      "Id": 667358469
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\light_rifle\\configurations\\light_rifle_v001_rapid_fire.weapon_configuration",
+      "Id": 2152132519
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\light_rifle\\configurations\\light_rifle_v002_explosive.weapon_configuration",
+      "Id": 96805751
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\mlrs\\configurations\\mlrs_v001_shellshock.weapon_configuration",
+      "Id": 1480469584
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\mlrs\\configurations\\surgical_strike_hydra.weapon_configuration",
+      "Id": 92320984
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\provoker\\configurations\\bouncing_provoker.weapon_configuration",
+      "Id": 4272704181
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\provoker\\configurations\\slagmaker_megatron.weapon_configuration",
+      "Id": 3336323511
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\pulse_carbine\\configurations\\auto_pulse_carbine.weapon_configuration",
+      "Id": 2427348060
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\shotgun\\configurations\\shotgun_v001_uber.weapon_configuration",
+      "Id": 955017825
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\shotgun\\configurations\\shotgun_v002_slug.weapon_configuration",
+      "Id": 734227647
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\shotgun\\configurations\\shotgun_v003_kelly.weapon_configuration",
+      "Id": 902991219
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\sniper_rifle\\configurations\\dmr_sniper.weapon_configuration",
+      "Id": 488415441
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\sniper_rifle\\configurations\\sniper_rifle_v001_recon.weapon_configuration",
+      "Id": 791016109
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\sniper_rifle\\configurations\\sniper_rifle_v003_linda.weapon_configuration",
+      "Id": 1859930951
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\rifle\\stalker_rifle\\configurations\\commando_stalker_rifle.weapon_configuration",
+      "Id": 1227616995
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\support_high\\fuel_rod_cannon\\configurations\\fuel_rod_cannon_v001_supercharged.weapon_configuration",
+      "Id": 788187549
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\support_high\\incineration_cannon\\configurations\\incineration_cannon_v001_volley.weapon_configuration",
+      "Id": 2979512729
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\support_high\\spnker_rocket_launcher_olympus\\configurations\\spnker_rocket_launcher_v002_cluster_bomb.weapon_configuration",
+      "Id": 4005098781
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\support_high\\spnker_rocket_launcher_olympus\\configurations\\tracking_rocket_launcher.weapon_configuration",
+      "Id": 1053574213
+    },
+    {
+      "Type": "weapon_configuration",
+      "Name": "objects\\weapons\\turret\\hunter_arm\\configurations\\hunter_arm_v001_berserk.weapon_configuration",
+      "Id": 3158420842
+    }
+  ]
+}

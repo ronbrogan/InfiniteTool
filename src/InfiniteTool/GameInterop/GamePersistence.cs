@@ -1,4 +1,5 @@
 ﻿using InfiniteTool.GameInterop.EngineDataTypes;
+using InfiniteTool.GameInterop.Internal;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Superintendent.Core.Remote;
@@ -34,7 +35,7 @@ namespace InfiniteTool.GameInterop
         private void Instance_OnAttachHandler(object sender, EventArgs? args)
         {
             this.offsets = this.instance.GetCurrentOffsets();
-            //this.Bootstrap();
+            this.Bootstrap();
         }
 
         public void Bootstrap()
@@ -107,20 +108,6 @@ namespace InfiniteTool.GameInterop
             {
 
             }
-        }
-
-        public void SetSpartanPoints(int value)
-        {
-            this.logger.LogInformation("Spartan points requested");
-            this.instance.PrepareForScriptCalls();
-            var player = process.CallFunction<nint>(this.offsets.player_get, 0).Item2;
-
-            var participant = process.CallFunction<nint>(this.offsets.unit_get_player, player).Item2;
-
-            var persistenceKey = GetPersistenceKey("Equipment_Points");
-
-
-            process.CallFunction<nint>(this.offsets.Persistence_SetLongKeyForParticipant, participant, (nint)persistenceKey, (nint)20);
         }
 
         private void EnsureBoostrapped()
@@ -316,7 +303,8 @@ namespace InfiniteTool.GameInterop
             }
         }
 
-        public class ProgressionEntry : INotifyPropertyChanged
+        [AddINotifyPropertyChangedInterface]
+        public class ProgressionEntry
         {
             public string KeyName { get; set; }
 
@@ -325,8 +313,6 @@ namespace InfiniteTool.GameInterop
             public uint GlobalValue { get; set; }
 
             public uint ParticipantValue { get; set; }
-
-            public event PropertyChangedEventHandler? PropertyChanged;
         }
     }
 }

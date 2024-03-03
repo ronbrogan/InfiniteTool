@@ -48,11 +48,7 @@ namespace InfiniteTool
         {
             this.Game.Instance.TriggerRevert();
         }
-        
-        private void keepCp_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.SaveCurrentCheckpoint();
-        }
+       
 
         private void suppressCp_Click(object sender, RoutedEventArgs e)
         {
@@ -71,12 +67,40 @@ namespace InfiniteTool
 
         private void points_Click(object sender, RoutedEventArgs e)
         {
-            this.Game.Instance.SetSpartanPoints(20);
+            this.Game.Instance.SetEquipmentPoints(45);
+        }
+
+        private void equipment_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.UnlockAllEquipment();
+        }
+
+        private void equipmentReset_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.ResetAllEquipment();
         }
 
         private void weapon_Click(object sender, RoutedEventArgs e)
         {
-            this.Game.Instance.SetWeapon();
+            if (this.Game.SelectedWeapon == null)
+                return;
+
+            this.Game.Instance.SpawnWeapon(this.Game.SelectedWeapon);
+        }
+
+        private void refreshPersistence_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.RefreshPersistence();
+        }
+
+        private void stopTime_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.TogglePause();
+        }
+
+        private void suspendAi_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.ToggleAi();
         }
 
         private void coordsToggle_Click(object sender, RoutedEventArgs e)
@@ -87,115 +111,15 @@ namespace InfiniteTool
         {
         }
 
-
-        private void refreshPersistence_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.RefreshPersistence();
-        }
-
-        private void startLevel_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.StartSelectedLevel();
-        }
-
-        private void injectCp_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.InjectSelectedCheckpoint();
-        }
-        
         private void restock_Click(object sender, RoutedEventArgs e)
         {
             this.Game.Instance.RestockPlayer();
         }
 
-        private void saveCp_Click(object sender, RoutedEventArgs e)
-        {
-            var save = new SaveFileDialog();
-            save.DefaultExt = ".infcp";
-            save.AddExtension = true;
-            save.FileName = "checkpoint.infcp";
-            save.Filter = "Infinite Checkpoint Files (*.infcp) | *.infcp";
-            if(save.ShowDialog(this) ?? false)
-            {
-                var cp = this.Game.SelectedCheckpoint;
-                using var file = save.OpenFile();
-                file.Write(cp.Data);
-
-                this.Game.SelectedCheckpoint.Filename = save.FileName;
-            }
-        }
-
-        //private void loadCp_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var open = new OpenFileDialog();
-        //    open.DefaultExt = ".infcp";
-        //    open.AddExtension = true;
-        //    open.FileName = "checkpoint.infcp";
-        //    open.Filter = "Infinite Checkpoint Files (*.infcp) | *.infcp";
-        //    if (open.ShowDialog(this) ?? false)
-        //    {
-        //        using var file = open.OpenFile();
-        //        var cpData = new byte[GameInstance.CheckpointDataSize];
-        //        file.Read(cpData);
-        //
-        //        this.Game.AddCheckpoint(cpData, open.FileName);
-        //    }
-        //}
-
         private void aboutMenu_Click(object sender, RoutedEventArgs e)
         {
             var about = new About();
             about.Show();
-        }
-
-        private void saveProgression_Click(object sender, RoutedEventArgs e)
-        {
-            var save = new SaveFileDialog();
-            save.DefaultExt = ".infprog";
-            save.AddExtension = true;
-            save.FileName = "progress.infprog";
-            save.DereferenceLinks = false;
-            save.Filter = "Infinite Progress Files (*.infprog) | *.infprog";
-            if (save.ShowDialog(this) ?? false)
-            {
-                using var file = save.OpenFile();
-                var progress = new ProgressionData(this.Game.Persistence.CurrentParticipantId, this.Game.PersistenceEntries);
-                progress.Write(file);
-            }
-        }
-
-        private void loadProgression_Click(object sender, RoutedEventArgs e)
-        {
-            var open = new OpenFileDialog();
-            open.DefaultExt = ".infprog";
-            open.AddExtension = true;
-            open.FileName = "progress.infprog";
-            open.DereferenceLinks = false;
-            open.Filter = "Infinite Progress Files (*.infprog) | *.infprog";
-            if (open.ShowDialog(this) ?? false)
-            {
-                using var file = open.OpenFile();
-                var data = ProgressionData.FromStream(file);
-
-                if (data == null) return;
-
-                this.Game.Persistence.SetProgress(data.Entries);
-            }
-        }
-
-        private void speedrunPostLights_Click(object sender, RoutedEventArgs e)
-        {
-            var gameVersion = Game.Instance.GetGameVersion();
-            if (gameVersion == null) return;
-
-            var progPath = Path.Combine(Environment.CurrentDirectory, "Data", gameVersion, "lightskip.infprog");
-            if (!File.Exists(progPath)) return;
-
-            var file = File.OpenRead(progPath);
-            var data = ProgressionData.FromStream(file);
-            if (data == null) return;
-
-            this.Game.Persistence.SetProgress(data.Entries);
         }
 
         private void openLogLocation_Click(object sender, RoutedEventArgs e)
@@ -224,9 +148,7 @@ namespace InfiniteTool
                 this.Game.Instance.PrepareForScriptCalls();
 
                 var sw = Stopwatch.StartNew();
-                //var result = proc.CallFunction<nint>(fnptr.Value, arg0, arg1, arg2, arg3);
-
-                var result = proc.CallFunctionAt<nint>((nint)0x2B4CD9A0002);
+                var result = proc.CallFunction<nint>(fnptr.Value, arg0, arg1, arg2, arg3);
 
                 SetResult($"Invoke response after {sw.ElapsedMilliseconds}ms\r\n{result.Item2:x16}");
             }
@@ -284,14 +206,14 @@ namespace InfiniteTool
 
                 if(data1 != null)
                 {
-                    proc.WriteAt(basis, data1);
+                    proc.WriteSpanAt<byte>(basis, data1);
                     sb.Append($"Wrote Data1 - {data1.Length} bytes at {basis:x}");
                     basis += data1.Length;
                 }
 
                 if (data2 != null)
                 {
-                    proc.WriteAt(basis, data2);
+                    proc.WriteSpanAt<byte>(basis, data2);
                     sb.Append($"Wrote Data2 - {data2.Length} bytes at {basis:x}");
                     basis += data2.Length;
                 }
@@ -323,6 +245,49 @@ namespace InfiniteTool
             }
         }
 
+        private void readInvoke_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var addr = GetDataFromHexBox("data3");
+
+                var proc = this.Game.Instance.RemoteProcess;
+
+                var len = 64;
+
+
+                var sw = Stopwatch.StartNew();
+
+                var data = new byte[len];
+                proc.ReadSpanAt<byte>(addr, data);
+
+                SetResult(Convert.ToHexString(data));
+            }
+            catch (Exception ex)
+            {
+                SetResult("Exception Cought\r\n" + ex.ToString());
+            }
+
+            nint GetDataFromHexBox(string name)
+            {
+                var box = this.FindChildren<TextBox>(t => t.Name == name).FirstOrDefault();
+
+                if (box == null)
+                    throw new Exception($"Couldn't find textbox '{name}'");
+
+                if (string.IsNullOrWhiteSpace(box.Text))
+                    return 0;
+
+
+                return (nint)Convert.ToInt64(box.Text, 16);
+            }
+
+            void SetResult(string content)
+            {
+                this.FindChildren<TextBox>(t => t.Name == "readResult").First().Text = content;
+            }
+        }
+
         private void dumpExe_Click(object sender, RoutedEventArgs e)
         {
             var proc = this.Game.Instance.RemoteProcess;
@@ -338,16 +303,17 @@ namespace InfiniteTool
             {
                 using var file = sf.OpenFile();
 
-                var buf = new byte[128].AsSpan();
+                var buf = new byte[4096].AsSpan();
 
                 try
                 {
+                    proc.SuspendAppThreads();
                     while (size > 0)
                     {
-                        var count = Math.Min(size, 128);
+                        var count = Math.Min(size, 4096);
                         var slice = buf.Slice(0, count);
 
-                        proc.Read(start, slice);
+                        proc.ReadSpan(start, slice);
                         file.Write(slice);
 
                         size -= count;
@@ -357,6 +323,10 @@ namespace InfiniteTool
                 catch
                 {
 
+                }
+                finally
+                {
+                    proc.ResumeAppThreads();
                 }
                 
 

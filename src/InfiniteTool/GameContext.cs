@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
+using static InfiniteTool.GameInterop.GamePersistence;
 
 namespace InfiniteTool
 {
@@ -19,74 +20,32 @@ namespace InfiniteTool
         public GameInstance Instance { get; private set; }
         public GamePersistence Persistence { get; private set; }
 
-        public InfiniteMap SelectedMap { get; set; }
+        public ObservableCollection<TagInfo> Weapons { get; }
 
-        public Dictionary<string, InfiniteMap> Maps { get; } = new()
-        {
-            ["Overworld"] = InfiniteMap.Overworld,
-            ["Warship Gbraakon"] = InfiniteMap.WarshipGbraakon,
-            ["Foundation"] = InfiniteMap.Foundation,
-            ["Conservatory"] = InfiniteMap.Conservatory,
-            ["Spire"] = InfiniteMap.Spire,
-            ["Nexus"] = InfiniteMap.Nexus,
-            ["The Command Spire"] = InfiniteMap.TheCommandSpire,
-            ["Repository"] = InfiniteMap.Repository,
-            ["House Of Reckoning"] = InfiniteMap.HouseOfReckoning,
-            ["Silent Auditorium"] = InfiniteMap.SilentAuditorium,
-        };
 
-        public List<GamePersistence.ProgressionEntry> PersistenceEntries { get; private set; } = new();
+        public ObservableCollection<ProgressionEntry> PersistenceEntries { get; } = new();
 
-        public ObservableCollection<CheckpointData> Checkpoints { get; private set; } = new()
-        {
-            new CheckpointData("Checkpoing save/load coming soon...", TimeSpan.FromDays(7), new byte[0], null)
-        };
-
-        public CheckpointData SelectedCheckpoint { get; set; }
+        public TagInfo SelectedWeapon { get; set; }
 
         public GameContext(GameInstance instance, GamePersistence progression, ILogger<GameContext> logger)
         {
             this.Instance = instance;
             this.Persistence = progression;
             this.logger = logger;
+
+            var weapTags = Tags.LoadWeaponTags();
+            this.Weapons = new ObservableCollection<TagInfo>(weapTags.Weapons);
+            foreach(var w in weapTags.WeaponConfigs)
+                this.Weapons.Add(w);
+
+
         }
 
-        internal void StartSelectedLevel()
+        public void RefreshPersistence()
         {
-            this.Instance.StartMap(this.SelectedMap);
-        }
-
-        internal void RefreshPersistence()
-        {
-            this.PersistenceEntries = this.Persistence.GetAllProgress();
-        }
-
-        internal void InjectSelectedCheckpoint()
-        {
-            //this.Instance.InjectCheckpoint(SelectedCheckpoint.Data);
-        }
-
-        internal void SaveCurrentCheckpoint()
-        {
-            //var data = this.Instance.SaveCheckpoint();
-
-            //if(data != null)
-            //{
-            //    this.AddCheckpoint(data);
-            //}
-        }
-
-        private int cp = 0;
-        public unsafe void AddCheckpoint(byte[] checkpointData, string filename = "")
-        {
-            string levelName;
-
-            fixed (byte* cpPtr = checkpointData)
-            {
-                levelName = Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(cpPtr + 12));
-            }
-
-            Checkpoints.Add(new CheckpointData(levelName, TimeSpan.FromSeconds(cp++), checkpointData, filename));
+            PersistenceEntries.Clear();
+            foreach (var e in this.Persistence.GetAllProgress())
+                PersistenceEntries.Add(e);
         }
     }
 }

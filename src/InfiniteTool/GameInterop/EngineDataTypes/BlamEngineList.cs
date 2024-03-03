@@ -1,11 +1,12 @@
-﻿using Superintendent.Core.Remote;
+﻿using InfiniteTool.GameInterop.Internal;
+using Superintendent.Core.Remote;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace InfiniteTool.GameInterop.EngineDataTypes
 {
-	public static class BlamEngineListExtensions
+    public static class BlamEngineListExtensions
     {
 		public static BlamEngineList<T> AllocateList<T>(this ArenaAllocator allocator, int listSize) where T: unmanaged
         {
@@ -99,7 +100,7 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 			if (typeof(T) == typeof(bit))
 			{
 				var bytes = new byte[(int)Math.Ceiling(count/8f)];
-				proc.ReadAt(this.head + index, bytes);
+				proc.ReadSpanAt<byte>(this.head + index, bytes);
 
 				for(var i = 0; i < count; i++)
                 {
@@ -110,14 +111,14 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 				return result;
 			}
 
-			proc.ReadAt(this.head + sizeof(T) * index, MemoryMarshal.AsBytes<T>(result));
+			proc.ReadSpanAt<byte>(this.head + sizeof(T) * index, MemoryMarshal.AsBytes<T>(result));
 			return result;
 		}
 
 		public void AddValue(T value)
 		{
 			// TODO: bit handling
-			proc.WriteAt(this.tail, new Span<byte>(&value, sizeof(T)));
+			proc.WriteSpanAt<byte>(this.tail, new Span<byte>(&value, sizeof(T)));
 			this.tail += sizeof(T);
 			this.SyncTo();
 		}
@@ -148,7 +149,7 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 				bytes = MemoryMarshal.AsBytes(values);
 			}
 
-			proc.WriteAt(this.tail, bytes);
+			proc.WriteSpanAt<byte>(this.tail, bytes);
 			this.tail += sizeof(T) * values.Length;
 			this.SyncTo();
 		}

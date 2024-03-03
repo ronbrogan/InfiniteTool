@@ -5,6 +5,6 @@
              Startup="Application_Startup"
              Exit="Application_Exit">
     <Application.Resources>
-         
+
     </Application.Resources>
 </Application>

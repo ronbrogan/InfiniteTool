@@ -34,6 +34,8 @@
   "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
   "Persistence_TryCreateKeyFromString": "0xc321d4",
   "Persistence_SetLongKey": "0xddf390",
+  "Persistence_SetByteKey": "0x008aef24",
+  "Persistence_SetBoolKey": "0x00e06238",
   "Persistence_GetLongKey": "0x00aaaa00",
   "Persistence_GetLongKeyForParticipant": "0x00f3e4ac",
   "Persistence_RemoveLongKeyOverride": "0x02aaf9d8",
@@ -50,11 +52,14 @@
 
   "get_string_id_from_string": "0x00c30a04",
 
-  "RuntimePersistenceChain": [ "0x04B325E8", "0x18", "0xE100" ],
+  "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
 
 
 
   "Object_GetPosition": "0x004f3314",
-  "Engine_CreateObject": "0x0070eb78"
+  "Engine_CreateObject": "0x0070eb78",
+  "Object_PlaceTagAtObjectLocation": "0x02b0ab08",
 
+  "ThreadLocalStaticInitializer": "0x3CD8370",
+  "Game_TimeSetPaused": "0x2986b40",
 }

@@ -1,6 +1,9 @@
-﻿using InfiniteTool.GameInterop.EngineDataTypes;
+﻿using Google.Protobuf.WellKnownTypes;
+using InfiniteTool.GameInterop.EngineDataTypes;
+using InfiniteTool.GameInterop.Internal;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
+using Superintendent.Core;
 using Superintendent.Core.Native;
 using Superintendent.Core.Remote;
 using System;
@@ -43,6 +46,7 @@ namespace InfiniteTool.GameInterop
         private readonly IOffsetProvider offsetProvider;
         private readonly ILogger<GameInstance> logger;
         private InfiniteOffsets offsets = new InfiniteOffsets();
+        private InfiniteOffsets.Client engine;
         private ArenaAllocator? allocator;
         private Dictionary<InfiniteMap, nint> scenarioStringLocations = new();
 
@@ -69,13 +73,25 @@ namespace InfiniteTool.GameInterop
             this.RemoteProcess = new RpcRemoteProcess();
         }
 
+        private bool susp = false;
+
         internal void TriggerCheckpoint()
         {
+            if(susp)
+            {
+                this.RemoteProcess.ResumeAppThreads();
+                susp = false;
+                return;
+            }
+
             try
             {
                 this.logger.LogInformation("Checkpoint requested");
                 this.PrepareForScriptCalls();
-                this.RemoteProcess.CallFunction<nint>(this.offsets.GameSaveFast);
+                ShowMessage("Custom Checkpoint");
+                engine.game_save_fast();
+                this.RemoteProcess.SuspendAppThreads();
+                susp = true;
             }
             catch (Exception ex)
             {
@@ -87,26 +103,36 @@ namespace InfiniteTool.GameInterop
         {
             this.logger.LogInformation("Revert requested");
             this.PrepareForScriptCalls();
-            this.RemoteProcess.CallFunction<nint>(this.offsets.GameRevert);
+            ShowMessage("Reverting");
+            var player = engine.player_get(0);
+            engine.object_set_shield(player, 1f);
+            engine.game_revert();
         }
 
         public void DoubleRevert()
         {
             this.logger.LogInformation("Double revert requested");
             this.PrepareForScriptCalls();
-            this.RemoteProcess.Read(this.offsets.CheckpointInfoAddress, out CheckpointInfo info);
-            info.CurrentSlot ^= 1;
-            this.RemoteProcess.Write(this.offsets.CheckpointInfoAddress, info);
-            this.RemoteProcess.CallFunction<nint>(this.offsets.GameRevert);
+            ShowMessage("Double reverting");
+            var player = engine.player_get(0);
+            engine.object_set_shield(player, 1f);
+            var cpInfo = engine.ReadCheckpointInfo();
+            cpInfo.CurrentSlot ^= 1;
+            engine.WriteCheckpointInfo(cpInfo);
+            engine.game_revert();
         }
 
         internal void ToggleCheckpointSuppression()
         {
             this.PrepareForScriptCalls();
-            this.RemoteProcess.Read(this.offsets.CheckpointInfoAddress, out CheckpointInfo cpInfo);
+            var cpInfo = engine.ReadCheckpointInfo();
             cpInfo.SuppressCheckpoints = (byte)(cpInfo.SuppressCheckpoints == 0 ? 1 : 0);
+            ShowMessage(cpInfo.SuppressCheckpoints == 1
+                ? "Suppressing checkpoints..."
+                : "Allowing checkpoints...");
+
             this.logger.LogInformation("Checkpoint suppresion toggle to {enabled}", cpInfo.SuppressCheckpoints);
-            this.RemoteProcess.Write(this.offsets.CheckpointInfoAddress, cpInfo);
+            engine.WriteCheckpointInfo(cpInfo);
         }
 
         private int invuln = 0;
@@ -114,8 +140,10 @@ namespace InfiniteTool.GameInterop
         {
             this.logger.LogInformation($"Invuln requested, val: {invuln}");
             this.PrepareForScriptCalls();
-            var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
             invuln ^= 1;
+            ShowMessage($"Toggling invuln to {invuln == 1}");
+            var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
+            
             RemoteProcess.CallFunction<nint>(this.offsets.Object_SetObjectCannotTakeDamage, player, invuln);
         }
 
@@ -123,111 +151,168 @@ namespace InfiniteTool.GameInterop
         {
             this.logger.LogInformation("Restock requested");
             this.PrepareForScriptCalls();
-            var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
-            
+            ShowMessage($"Restocking player");
+
+            var player = engine.player_get(0);
+
             // Restocks throw for some reason, but they *do* restock 
-            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillAmmo, player); } catch(Exception e) { }
-            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 1); } catch(Exception e) { }
-            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 2); } catch(Exception e) { }
-            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 3); } catch(Exception e) { }
-            try { this.RemoteProcess.CallFunction<nint>(this.offsets.Unit_RefillGrenades, player, 4); } catch (Exception e) { }
+            engine.Unit_RefillAmmo(player);
+            engine.Unit_RefillGrenades(player, 1);
+            engine.Unit_RefillGrenades(player, 2);
+            engine.Unit_RefillGrenades(player, 3);
+            engine.Unit_RefillGrenades(player, 4);
         }
 
-        public void SetSpartanPoints(int value)
+        public void UnlockAllEquipment()
         {
-            this.logger.LogInformation("Spartan points requested");
+            this.logger.LogInformation("Equipment unlock requested");
             this.PrepareForScriptCalls();
+
+            ShowMessage($"Unlocking all equipment");
+
+            var stringAddr = this.allocator.Allocate(8);
+            var resultAddr = this.allocator.Allocate(8);
+
+            var valAddr = this.allocator.Allocate(1);
+            RemoteProcess.WriteAt(valAddr, (byte)1);
+
+            UnlockEquipment("schematic_evade");
+            UnlockEquipment("schematic_wall");
+            UnlockEquipment("schematic_sensor");
+            UnlockEquipment("Schematic-ShieldUpdgrade1");
+            UnlockEquipment("Schematic-ShieldUpdgrade2");
+            UnlockEquipment("Schematic-ShieldUpdgrade3");
+            UnlockEquipment("grapple_hook");
             
+
+            RemoteProcess.WriteAt(valAddr, (byte)1);
+            NoticeDeadSpartan("spartan_griffin");
+            NoticeDeadSpartan("spartan_makovich");
+            NoticeDeadSpartan("spartan_sorel");
+            NoticeDeadSpartan("spartan_horvath");
+            NoticeDeadSpartan("spartan_vettel");
+            NoticeDeadSpartan("spartan_stone");
+            NoticeDeadSpartan("spartan_kovan");
+            NoticeDeadSpartan("spartan_stone");
+
+            void UnlockEquipment(string identifier)
+            {
+                var keyAddr = this.allocator.WriteString(identifier);
+                RemoteProcess.WriteAt(stringAddr, keyAddr);
+
+                engine.Persistence_TryCreateKeyFromString(0, resultAddr, stringAddr);
+
+                RemoteProcess.ReadAt<uint>(resultAddr, out var persistenceKey);
+
+                engine.Persistence_SetBoolKey(0, resultAddr, valAddr);
+            }
+
+            void NoticeDeadSpartan(string identifier)
+            {
+                var keyAddr = this.allocator.WriteString(identifier);
+                RemoteProcess.WriteAt(stringAddr, keyAddr);
+
+                engine.Persistence_TryCreateKeyFromString(0, resultAddr, stringAddr);
+
+                RemoteProcess.ReadAt<uint>(resultAddr, out var persistenceKey);
+
+                engine.Persistence_SetByteKey(0, resultAddr, valAddr);
+            }
+        }
+
+        public void ResetAllEquipment()
+        {
+            this.logger.LogInformation("Equipment reset requested");
+            this.PrepareForScriptCalls();
+            ShowMessage($"Resetting equipment levels");
+
+            var stringAddr = this.allocator.Allocate(8);
+            var resultAddr = this.allocator.Allocate(8);
+
+            var valAddr = this.allocator.Allocate(1);
+            RemoteProcess.WriteAt(valAddr, (byte)0);
+
+            SetEquipmentUpgrade("Grapple_Upgrade_Level");
+            SetEquipmentUpgrade("Evade_Upgrade_Level");
+            SetEquipmentUpgrade("Wall_Upgrade_Level");
+            SetEquipmentUpgrade("Sensor_Upgrade_Level");
+            SetEquipmentUpgrade("Shield_Upgrade_Level");
+
+            void SetEquipmentUpgrade(string identifier)
+            {
+                var keyAddr = this.allocator.WriteString(identifier);
+                RemoteProcess.WriteAt(stringAddr, keyAddr);
+
+                engine.Persistence_TryCreateKeyFromString(0, resultAddr, stringAddr);
+
+                RemoteProcess.ReadAt<uint>(resultAddr, out var persistenceKey);
+
+                engine.Persistence_SetByteKey(0, resultAddr, valAddr);
+            }
+        }
+
+        public void SetEquipmentPoints(int value)
+        {
+            this.logger.LogInformation("equipment points requested");
+            this.PrepareForScriptCalls();
+            ShowMessage($"Setting equipment points to {value}");
+
             //var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
             //var participant = RemoteProcess.CallFunction<nint>(this.offsets.unit_get_player, player).Item2;
 
             var stringAddr = this.allocator.Allocate(8);
             var resultAddr = this.allocator.Allocate(8);
+            var valAddr = this.allocator.Allocate(sizeof(int));
+            RemoteProcess.WriteAt(valAddr, value);
 
             var keyAddr = this.allocator.WriteString("Equipment_Points");
             RemoteProcess.WriteAt(stringAddr, keyAddr);
-            
-            RemoteProcess.CallFunction<nint>(this.offsets.Persistence_TryCreateKeyFromString, 0x0, resultAddr, stringAddr);
+
+            engine.Persistence_TryCreateKeyFromString(0, resultAddr, stringAddr);
 
             RemoteProcess.ReadAt<uint>(resultAddr, out var persistenceKey);
 
-            var runtimePersistenceLoc = this.offsets.ResolveRuntimePersistenceChain(RemoteProcess);
-
-            for(var i = 0; i < 24; i++)
-            {
-                var addr = runtimePersistenceLoc + i * Unsafe.SizeOf<RuntimePersistenceBlock>();
-                RemoteProcess.ReadAt(addr, out RuntimePersistenceBlock block);
-
-                for(var j = 0; j < block.Count; j++)
-                {
-                    ref var kv = ref block.Entries[j];
-                    if(kv.Key == persistenceKey)
-                    {
-                        kv.RawValue = (uint)value;
-                        RemoteProcess.WriteAt(addr, block);
-                        return;
-                    }
-                }
-            }
-
-            //var participantAddr = this.allocator.Allocate(8);
-            //RemoteProcess.WriteAt(participantAddr, participant);
-            //var valueAddr = this.allocator.Allocate(8);
-            //RemoteProcess.WriteAt(valueAddr, 20);
-            //
-            //var setResultAddr = this.allocator.Allocate(8);
-            //
-            //var lk = RemoteProcess.CallFunction<nint>(this.offsets.Persistence_GetLongKey, 0x0, resultAddr, setResultAddr);
-            //var lkp = RemoteProcess.CallFunction<nint>(this.offsets.Persistence_GetLongKeyForParticipant, 0x0, resultAddr, participantAddr, setResultAddr);
-            //
-            //var removeResult = RemoteProcess.CallFunction<nint>(this.offsets.Persistence_RemoveLongKeyOverride, 0x0, resultAddr);
-            //var removeResult2 = RemoteProcess.CallFunction<nint>(this.offsets.Persistence_RemoveLongKeyOverrideForParticipant, 0x0, resultAddr, participantAddr);
-            //
-            //var result = RemoteProcess.CallFunction<nint>(this.offsets.Persistence_SetLongKeyForParticipant, 0x0, resultAddr, participantAddr, valueAddr);
-            //var result2 = RemoteProcess.CallFunction<nint>(this.offsets.Persistence_SetLongKey, 0x0, valueAddr, resultAddr);
-
-            
-
+            engine.Persistence_SetLongKey(0, resultAddr, valAddr);
         }
 
-        public void SetWeapon()
+        public bool SpawnWeapon(TagInfo weapon)
         {
-            var shotgun = 0x8597;
-            var ar = 0x8595;
-            var br = 0x8593;
+            // Our func takes these 'global' tag IDs, but will only succeed if they're
+            // available in the 'tag translation table' (as I'm calling it)
+            // Need to scan this table and build up a list of available weapons to create
+            // Also need to figure out how variants really work :)
+            // ObjectGetVariant[228] Object->StringId      00aa553c // 00aa54fc
+            // object_set_variant[236] Object,StringId->Void   00f17524 // 00aa6f00
+
 
             this.logger.LogInformation("Weapon requested");
             this.PrepareForScriptCalls();
 
-            var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
+            ShowMessage("Weapon spawned");
 
+            var player = engine.player_get(0);
+            var created = engine.Object_PlaceTagAtObjectLocation(weapon.Id, player);
 
-            var padding = this.allocator.Allocate(64);
-            var player2 = RemoteProcess.CallFunction<nint>(this.offsets.player_get_first_valid, padding).Item2;
+            return created != -1;
+        }
 
-            //RemoteProcess.WriteAt<nint>(padding, ar);
-            //var objeResolve = RemoteProcess.CallFunction<nint>(0x448ce4, padding, 0x6f626a65).Item2;
+        public void ShowMessage(string message)
+        {
+            nint playerIdThing = (nint)0xEC700000;
 
+            nint getMessageBuffer = 0x13bf710;
+            nint getMessageBufferSlot = 0x13bee30;
+            nint showMessage = 0x13c1ef0;
 
-            
+            var stringAddress = this.allocator.WriteString(message, Encoding.Unicode);
 
+            var bufAddress = this.RemoteProcess.CallFunction<nint>(getMessageBuffer, 0).Item2;
 
-            var create = RemoteProcess.CallFunction<nint>(0x02b0ab08, ar, player).Item2;
+            var slotAddress = this.RemoteProcess.CallFunction<nint>(getMessageBufferSlot, bufAddress + 0x888, playerIdThing, playerIdThing).Item2;
 
-            //RemoteProcess.WriteAt<nint>(padding, player);
-            //var val = RemoteProcess.CallFunction<nint>(0x3fe7e8, padding).Item2;
-            //
-            //var resultAddr = this.allocator.Allocate(8);
-            //
-            //var location = RemoteProcess.CallFunction<nint>(this.offsets.Object_GetPosition, resultAddr, player).Item2;
-            //RemoteProcess.ReadAt<nint>(resultAddr, out var playerLoc);
-            //
-            //
-            //RemoteProcess.CallFunction<nint>(this.offsets.Engine_CreateObject, ar, val + 80);
+            var duration = BitConverter.SingleToUInt32Bits(5f);
 
-
-
-
+            _ = this.RemoteProcess.CallFunction<nint>(showMessage, bufAddress, slotAddress, (nint)duration, stringAddress);
 
         }
 
@@ -351,11 +436,15 @@ namespace InfiniteTool.GameInterop
         public void Bootstrap()
         {
             logger.LogInformation("Bootstrapping for new process {PID}", this.ProcessId);
+            if (this.RemoteProcess.Process == null) throw new Exception("Remote process was not available");
+
             try
             {
-                if (this.RemoteProcess.Process == null) throw new Exception("Remote process was not available");
+                
 
-                var offsets = LoadOffsets();
+                this.offsets = LoadOffsets();
+                this.engine = offsets.CreateClient(this.RemoteProcess);
+
                 Retry(() => GetMainThreadInfo(this.RemoteProcess.Process, offsets), times: 30, delay: 3000);
                 //PopulateAddresses();
                 SetupWorkspace();
@@ -409,28 +498,27 @@ namespace InfiniteTool.GameInterop
 
             uint? mainThreadId = null;
 
-            if (offsets.ThreadTable.HasValue)
+            
+            var threadTable = new GameThreadTableEntry[58];
+            remote.ReadPointerSpan(offsets.ThreadTable, threadTable);
+
+            foreach (var entry in threadTable)
             {
-                var threadTable = new GameThreadTableEntry[58];
-                remote.Read(offsets.ThreadTable.Value, MemoryMarshal.AsBytes<GameThreadTableEntry>(threadTable));
+                var end = entry.Name;
+                while (*end != 00 && (end - entry.Name) < 32) end++;
+                var name = Encoding.UTF8.GetString(entry.Name, (int)(end - entry.Name));
 
-                foreach (var entry in threadTable)
+                if (name == mainThreadDescription)
                 {
-                    var end = entry.Name;
-                    while (*end != 00 && (end - entry.Name) < 32) end++;
-                    var name = Encoding.UTF8.GetString(entry.Name, (int)(end - entry.Name));
-
-                    if (name == mainThreadDescription)
-                    {
-                        mainThreadId = entry.ThreadId;
-                        this.logger.LogInformation("Main thread found from table: {tid}", mainThreadId);
-                        break;
-                    }
+                    threadId = entry.ThreadId;
+                    this.logger.LogInformation("Main thread found from table: {tid}", mainThreadId);
+                    return true;
                 }
             }
+            
 
-            threadId = mainThreadId.GetValueOrDefault();
-            return mainThreadId.HasValue;
+            threadId = default;
+            return false;
         }
 
         private unsafe bool GetMainThreadInfo(Process process, InfiniteOffsets offsets)
@@ -499,10 +587,10 @@ namespace InfiniteTool.GameInterop
         {
             // Update checked values in static thread local storage
             var tlp = this.RemoteProcess.GetThreadLocalPointer();
-            this.RemoteProcess.ReadAt(tlp, out nint tlMem);
-            this.RemoteProcess.Read<uint>(0x3CD8370, out var tlValue);
+            var magic = this.engine.ReadThreadLocalStaticInitializer();
 
-            this.RemoteProcess.WriteAt(tlMem + 32, tlValue);
+            this.RemoteProcess.ReadAt(tlp, out nint tlMem);
+            this.RemoteProcess.WriteAt(tlMem + 32, magic);
             this.RemoteProcess.WriteAt<byte>(tlMem + 320, 1);
             this.RemoteProcess.WriteAt<byte>(tlMem + 325, 0);
         }
@@ -527,7 +615,7 @@ namespace InfiniteTool.GameInterop
 
             // Grab expansion slots
             var byteDest = MemoryMarshal.Cast<nint, byte>(newVals.Slice(expansionSlotStart));
-            this.RemoteProcess.ReadAt(mainThread.teb.TlsExpansionSlots, byteDest);
+            this.RemoteProcess.ReadSpanAt(mainThread.teb.TlsExpansionSlots, byteDest);
 
             // Don't write if we don't need to
             if (newVals.SequenceEqual(previousTlsValues))
@@ -598,6 +686,26 @@ namespace InfiniteTool.GameInterop
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
+        }
+
+        private int pauseState = 0;
+        internal void TogglePause()
+        {
+            this.PrepareForScriptCalls();
+            pauseState ^= 1;
+            ShowMessage(pauseState == 1 ? "Freezing time" : "Thawing time");
+            engine.Game_TimeSetPaused(pauseState == 1);
+        }
+
+        private int aiState = 0;
+        internal void ToggleAi()
+        {
+            this.PrepareForScriptCalls();
+
+            aiState ^= 1;
+
+            ShowMessage(aiState == 1 ? "AI enabled" : "AI disabled");
+            engine.ai_enable(aiState == 1);
         }
     }
 }

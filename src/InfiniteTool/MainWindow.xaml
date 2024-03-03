@@ -44,8 +44,9 @@
                         <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
                         <Button x:Name="bindable_doubleRevert" Content="Double Revert" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="doubleRevert_Click"/>
                         <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
-                        <Button x:Name="bindable_invuln" Content="Toggle Invuln" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="invulnToggle_Click"/>
-                        <Button x:Name="bindable_restock" Content="Restock" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="restock_Click"/>
+                        <Button x:Name="bindable_pause" Content="Stop Time" HorizontalAlignment="Center" Margin="3" Click="stopTime_Click"/>
+                        <Button x:Name="bindable_aiSuspend" Content="Suspend AI" HorizontalAlignment="Center" Margin="3" Click="suspendAi_Click"/>
+
                         <!--<Button x:Name="bindable_keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>-->
                     </StackPanel>
                     <!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
@@ -66,8 +67,26 @@
             <TabItem Header="Loadout">
                 <DockPanel>
                     <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
-                        <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
-                        <Button x:Name="bindable_weap" Content="Weapon" HorizontalAlignment="Center" Margin="3" Click="weapon_Click"/>
+                        <StackPanel  HorizontalAlignment="Center"  Orientation="Horizontal">
+                            <Button x:Name="bindable_equipment" Content="Unlock All Equipment" HorizontalAlignment="Center" Margin="3" Click="equipment_Click"/>
+                            <Button x:Name="bindable_equipmentReset" Content="Reset Equipment" HorizontalAlignment="Center" Margin="3" Click="equipmentReset_Click"/>
+                            <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
+                        </StackPanel>
+                        <Button x:Name="bindable_invuln" Content="Toggle Invuln" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="invulnToggle_Click"/>
+                        <Button x:Name="bindable_restock" Content="Restock" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="restock_Click"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+                            <ComboBox Width="250" ItemsSource="{Binding Weapons}" SelectedItem="{Binding SelectedWeapon}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button x:Name="bindable_weap" Content="Spawn Weapon" HorizontalAlignment="Center" Margin="3" Click="weapon_Click"/>
+                            
+                        </StackPanel>
+                        
+                        
 
                     </StackPanel>
                 </DockPanel>
@@ -119,6 +138,14 @@
                             
                             <Button Content="Write" Margin="2" Click="writeInvoke_Click"></Button>
                             <TextBox x:Name="writeResult" Text="$" Margin="2" Height="65" IsReadOnly="true" TextWrapping="WrapWithOverflow" ></TextBox>
+                            
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Read 0x"></Label>
+                                <TextBox x:Name="data3" Width="150"></TextBox>
+                            </StackPanel>
+
+                            <Button Content="Read" Margin="2" Click="readInvoke_Click"></Button>
+                            <TextBox x:Name="readResult" Text="$" Margin="2" Height="65" IsReadOnly="true" TextWrapping="WrapWithOverflow" ></TextBox>
                         </StackPanel>
 
                     </DockPanel>
@@ -136,15 +163,15 @@
 
                 </DockPanel>
             </TabItem>
-            <!--<TabItem Header="Progression Data" Visibility="Visible">
+            <TabItem Header="Progression Data" Visibility="Visible">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Content="Save to File" Margin="2" Click="saveProgression_Click"></Button>
-                            <Button Content="Load from File" Margin="2" Click="loadProgression_Click"></Button>
+                            <!--<Button Content="Save to File" Margin="2" Click="saveProgression_Click"></Button>
+                            <Button Content="Load from File" Margin="2" Click="loadProgression_Click"></Button>-->
                         </StackPanel>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            --><!--<CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>--><!--
+                            <!--<CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>-->
                             <Button Content="Refresh" Margin="5,0,0,0" Click="refreshPersistence_Click"></Button>
                         </StackPanel>
 
@@ -158,7 +185,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
-            </TabItem>-->
+            </TabItem>
             <!--<TabItem Header="Speedrun">
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock TextAlignment="Center">

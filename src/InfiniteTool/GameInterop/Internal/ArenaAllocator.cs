@@ -4,7 +4,7 @@ using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace InfiniteTool.GameInterop
+namespace InfiniteTool.GameInterop.Internal
 {
     public static class AllocatorExtensions
     {
@@ -12,10 +12,10 @@ namespace InfiniteTool.GameInterop
         {
             encoding ??= Encoding.ASCII;
 
-            Span<byte> stringBytes = stackalloc byte[encoding.GetByteCount(value) + 1];
+            Span<byte> stringBytes = stackalloc byte[encoding.GetByteCount(value) + 4];
             encoding.GetBytes(value, stringBytes);
             var loc = allocator.Allocate(stringBytes.Length);
-            allocator.RemoteProcess.WriteAt(loc, stringBytes);
+            allocator.RemoteProcess.WriteSpanAt<byte>(loc, stringBytes);
             return loc;
         }
 
@@ -25,7 +25,7 @@ namespace InfiniteTool.GameInterop
 
             var bufSize = 0;
 
-            foreach(var value in values)
+            foreach (var value in values)
             {
                 bufSize += encoding.GetByteCount(value) + 1;
             }
@@ -38,7 +38,7 @@ namespace InfiniteTool.GameInterop
             var i = 0;
             var locations = new nint[values.Length];
 
-            foreach(var value in values)
+            foreach (var value in values)
             {
                 locations[i] = loc + current;
                 current += encoding.GetBytes(value, buf.Slice(current));
@@ -46,7 +46,7 @@ namespace InfiniteTool.GameInterop
                 i++;
             }
 
-            allocator.RemoteProcess.WriteAt(loc, buf);
+            allocator.RemoteProcess.WriteSpanAt<byte>(loc, buf);
             return locations;
         }
     }
@@ -66,35 +66,35 @@ namespace InfiniteTool.GameInterop
         public ArenaAllocator(IRemoteProcess remoteProcess, int size)
         {
             this.RemoteProcess = remoteProcess;
-            this.localCopy = ArrayPool<byte>.Shared.Rent(size);
+            localCopy = ArrayPool<byte>.Shared.Rent(size);
 
             // ArrayPool will give us at least the bytes we ask for, tending towards 2^N, so we'll just use that
-            this.size = this.localCopy.Length;
-            this.allocationBase = remoteProcess.Allocate(this.size);
-            this.freeSpot = this.allocationBase;
+            this.size = localCopy.Length;
+            allocationBase = remoteProcess.Allocate(this.size);
+            freeSpot = allocationBase;
         }
 
         public nint Allocate(int bytes)
         {
-            if(this.freeSpot + bytes > this.allocationBase + this.size)
+            if (freeSpot + bytes > allocationBase + size)
             {
                 throw new NoRoomException();
             }
 
-            var spot = this.freeSpot;
-            this.freeSpot += bytes;
+            var spot = freeSpot;
+            freeSpot += bytes;
             return spot;
         }
 
         public void Reclaim(bool zero = false)
         {
-            if(zero)
+            if (zero)
             {
                 // TODO: if we start writing to local copy, we'll need to zero it first
-                this.RemoteProcess.WriteAt(this.allocationBase, this.localCopy) ;
+                this.RemoteProcess.WriteSpanAt<byte>(allocationBase, localCopy);
             }
 
-            this.freeSpot = this.allocationBase;
+            freeSpot = allocationBase;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -103,14 +103,14 @@ namespace InfiniteTool.GameInterop
             {
                 if (disposing)
                 {
-                    ArrayPool<byte>.Shared.Return(this.localCopy);
+                    ArrayPool<byte>.Shared.Return(localCopy);
                 }
 
-                if(this.allocationBase > 0)
+                if (allocationBase > 0)
                 {
                     try
                     {
-                        this.RemoteProcess.Free(this.allocationBase);
+                        this.RemoteProcess.Free(allocationBase);
                     }
                     catch { }
                 }

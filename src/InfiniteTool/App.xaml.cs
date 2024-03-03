@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using InfiniteTool.GameInterop;
+using InfiniteTool.GameInterop.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
