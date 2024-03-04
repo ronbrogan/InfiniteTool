@@ -47,7 +47,7 @@ namespace InfiniteTool.GameInterop
         private readonly ILogger<GameInstance> logger;
         private InfiniteOffsets offsets = new InfiniteOffsets();
         private InfiniteOffsets.Client engine;
-        private ArenaAllocator? allocator;
+        private ArenaAllocator allocator;
         private Dictionary<InfiniteMap, nint> scenarioStringLocations = new();
 
         public InfiniteOffsets GetCurrentOffsets() => offsets;
@@ -55,6 +55,7 @@ namespace InfiniteTool.GameInterop
         public int ProcessId { get; private set; }
 
         public RpcRemoteProcess RemoteProcess { get; private set; }
+        private Codegen Utilities;
 
         public Vector3 PlayerPosition { get; private set; }
 
@@ -73,25 +74,15 @@ namespace InfiniteTool.GameInterop
             this.RemoteProcess = new RpcRemoteProcess();
         }
 
-        private bool susp = false;
-
         internal void TriggerCheckpoint()
         {
-            if(susp)
-            {
-                this.RemoteProcess.ResumeAppThreads();
-                susp = false;
-                return;
-            }
-
             try
             {
                 this.logger.LogInformation("Checkpoint requested");
                 this.PrepareForScriptCalls();
                 ShowMessage("Custom Checkpoint");
                 engine.game_save_fast();
-                this.RemoteProcess.SuspendAppThreads();
-                susp = true;
+                this.allocator.Reclaim();
             }
             catch (Exception ex)
             {
@@ -107,6 +98,7 @@ namespace InfiniteTool.GameInterop
             var player = engine.player_get(0);
             engine.object_set_shield(player, 1f);
             engine.game_revert();
+            this.allocator.Reclaim();
         }
 
         public void DoubleRevert()
@@ -120,6 +112,7 @@ namespace InfiniteTool.GameInterop
             cpInfo.CurrentSlot ^= 1;
             engine.WriteCheckpointInfo(cpInfo);
             engine.game_revert();
+            this.allocator.Reclaim();
         }
 
         internal void ToggleCheckpointSuppression()
@@ -133,6 +126,7 @@ namespace InfiniteTool.GameInterop
 
             this.logger.LogInformation("Checkpoint suppresion toggle to {enabled}", cpInfo.SuppressCheckpoints);
             engine.WriteCheckpointInfo(cpInfo);
+            this.allocator.Reclaim();
         }
 
         private int invuln = 0;
@@ -145,6 +139,7 @@ namespace InfiniteTool.GameInterop
             var player = RemoteProcess.CallFunction<nint>(this.offsets.player_get, 0).Item2;
             
             RemoteProcess.CallFunction<nint>(this.offsets.Object_SetObjectCannotTakeDamage, player, invuln);
+            this.allocator.Reclaim();
         }
 
         public void RestockPlayer()
@@ -161,6 +156,7 @@ namespace InfiniteTool.GameInterop
             engine.Unit_RefillGrenades(player, 2);
             engine.Unit_RefillGrenades(player, 3);
             engine.Unit_RefillGrenades(player, 4);
+            this.allocator.Reclaim();
         }
 
         public void UnlockAllEquipment()
@@ -194,6 +190,8 @@ namespace InfiniteTool.GameInterop
             NoticeDeadSpartan("spartan_stone");
             NoticeDeadSpartan("spartan_kovan");
             NoticeDeadSpartan("spartan_stone");
+
+            this.allocator.Reclaim();
 
             void UnlockEquipment(string identifier)
             {
@@ -238,6 +236,8 @@ namespace InfiniteTool.GameInterop
             SetEquipmentUpgrade("Sensor_Upgrade_Level");
             SetEquipmentUpgrade("Shield_Upgrade_Level");
 
+            this.allocator.Reclaim();
+
             void SetEquipmentUpgrade(string identifier)
             {
                 var keyAddr = this.allocator.WriteString(identifier);
@@ -273,6 +273,8 @@ namespace InfiniteTool.GameInterop
             RemoteProcess.ReadAt<uint>(resultAddr, out var persistenceKey);
 
             engine.Persistence_SetLongKey(0, resultAddr, valAddr);
+
+            this.allocator.Reclaim();
         }
 
         public bool SpawnWeapon(TagInfo weapon)
@@ -293,66 +295,40 @@ namespace InfiniteTool.GameInterop
             var player = engine.player_get(0);
             var created = engine.Object_PlaceTagAtObjectLocation(weapon.Id, player);
 
+            this.allocator.Reclaim();
+
             return created != -1;
+        }
+
+        private int pauseState = 0;
+        internal void TogglePause()
+        {
+            this.PrepareForScriptCalls();
+            pauseState ^= 1;
+            ShowMessage(pauseState == 1 ? "Freezing time" : "Thawing time");
+            engine.Game_TimeSetPaused(pauseState == 1);
+            this.allocator.Reclaim();
+        }
+
+        private int aiState = 0;
+        internal void ToggleAi()
+        {
+            this.PrepareForScriptCalls();
+
+            aiState ^= 1;
+
+            ShowMessage(aiState == 1 ? "AI enabled" : "AI disabled");
+            engine.ai_enable(aiState == 1);
+            this.allocator.Reclaim();
         }
 
         public void ShowMessage(string message)
         {
-            nint playerIdThing = (nint)0xEC700000;
-
-            nint getMessageBuffer = 0x13bf710;
-            nint getMessageBufferSlot = 0x13bee30;
-            nint showMessage = 0x13c1ef0;
+            var playerIdThing = 0xEC700000;
 
             var stringAddress = this.allocator.WriteString(message, Encoding.Unicode);
 
-            var bufAddress = this.RemoteProcess.CallFunction<nint>(getMessageBuffer, 0).Item2;
-
-            var slotAddress = this.RemoteProcess.CallFunction<nint>(getMessageBufferSlot, bufAddress + 0x888, playerIdThing, playerIdThing).Item2;
-
-            var duration = BitConverter.SingleToUInt32Bits(5f);
-
-            _ = this.RemoteProcess.CallFunction<nint>(showMessage, bufAddress, slotAddress, (nint)duration, stringAddress);
-
-        }
-
-        private CancellationTokenSource playerPoller = new();
-        private Task? playerPollTask = null;
-        private bool disposedValue;
-
-        public void PollPlayerData()
-        {
-            if (this.playerPollTask != null)
-            {
-                this.playerPoller.Cancel();
-                this.playerPollTask.Wait();
-                this.playerPollTask = null;
-            }
-
-            if(this.playerPoller.IsCancellationRequested)
-                this.playerPoller.TryReset();
-
-            this.logger.LogInformation("Polling player data");
-
-            this.playerPollTask = this.RemoteProcess.PollMemoryAt<PlayerDatum>(this.PlayerDatumAddress, 33, d =>
-            {
-                this.PlayerPosition = d.Position;
-            }, playerPoller.Token);
-        }
-
-        public void StopPollingPlayerData()
-        {
-            this.playerPoller.Cancel();
-            this.PlayerPosition = Vector3.Zero;
-        }
-
-        public void StartMap(InfiniteMap map)
-        {
-            if(this.scenarioStringLocations.TryGetValue(map, out var location))
-            {
-                this.logger.LogInformation("Starting map {map}//{location}", map, location);
-                this.RemoteProcess.CallFunction<nint>(this.offsets.StartLevel, location);
-            }
+            this.Utilities.ShowMessage(playerIdThing, stringAddress, 5f);
         }
 
         public void Initialize()
@@ -430,7 +406,6 @@ namespace InfiniteTool.GameInterop
             this.ProcessId = 0;
             this.RevertFlagOffset = 0;
             this.CheckpointFlagAddress = 0;
-            this.StopPollingPlayerData();
         }
 
         public void Bootstrap()
@@ -440,18 +415,14 @@ namespace InfiniteTool.GameInterop
 
             try
             {
-                
-
                 this.offsets = LoadOffsets();
                 this.engine = offsets.CreateClient(this.RemoteProcess);
 
                 Retry(() => GetMainThreadInfo(this.RemoteProcess.Process, offsets), times: 30, delay: 3000);
-                //PopulateAddresses();
+
                 SetupWorkspace();
 
-                
-
-                //PollPlayerData();
+                Utilities = Codegen.Generate(this.offsets, this.RemoteProcess);
             }
             catch { }
         }
@@ -665,6 +636,7 @@ namespace InfiniteTool.GameInterop
             throw new Exception("Action did not complete successfully");
         }
 
+        private bool disposedValue = false;
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -674,7 +646,6 @@ namespace InfiniteTool.GameInterop
                     this.allocator?.Dispose();
                     this.RemoteProcess.EjectMombasa();
                     this.RemoteProcess?.Dispose();
-                    this.playerPoller?.Dispose();
                 }
 
                 // TODO: set large fields to null
@@ -686,26 +657,6 @@ namespace InfiniteTool.GameInterop
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
-        }
-
-        private int pauseState = 0;
-        internal void TogglePause()
-        {
-            this.PrepareForScriptCalls();
-            pauseState ^= 1;
-            ShowMessage(pauseState == 1 ? "Freezing time" : "Thawing time");
-            engine.Game_TimeSetPaused(pauseState == 1);
-        }
-
-        private int aiState = 0;
-        internal void ToggleAi()
-        {
-            this.PrepareForScriptCalls();
-
-            aiState ^= 1;
-
-            ShowMessage(aiState == 1 ? "AI enabled" : "AI disabled");
-            engine.ai_enable(aiState == 1);
         }
     }
 }
