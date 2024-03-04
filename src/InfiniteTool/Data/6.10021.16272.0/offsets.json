@@ -1,65 +1,31 @@
 {
   "ThreadTable": "0x41A6070",
-  "PlayerDatumPointer": "0x047084F8", // look at player_get impl, there's a fallback from TLS fetch in there with this value
-
-  "players": "0x00df63d0",
-  "player_get": "0x0293acc4",
-  "player_get_first_valid": "0x00f3d4f0",
-
+  "ThreadLocalStaticInitializer": "0x3CD8370",
+  "Game_TimeSetPaused": "0x2986b40",
+  "CheckpointInfo": "0x446a290", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
   "game_revert": "0x2684e78",
   "game_save_fast": "0x2a7a81c",
-  "unit_impervious": "0x2ea0214",
-  "InGameMap_Unlock": "0x13cb370",
-  "CampaignMap_SetFastTravelPossible": "0x1366640",
-  "Object_SetObjectCannotTakeDamage": "0x2af6f38",
-  "Engine_GetSkullEnabled": "0x2b1a4ac",
-  "Engine_SetSkullEnabled": "0x2b1a5a8",
-  "ForgePlayer_SetMonitorNoClipMode": "0x2ae4874",
+
   "ai_enable": "0x2770740",
-  "camera_set_first_person": "0x28fe7c0",
-  "GameSetBadNextRevert": "0x2a8f410",
-  "game_safe_to_save": "0x2a7dbc0",
-  "camera_set_mode": "0x28fcd14",
-  "object_cannot_take_damage": "0x00d68ec8",
-  "object_can_take_damage": "0x00d68ed8",
+  "ai_kill_all": "0x279d9a8",
+  "player_get": "0x0293acc4",
   "Unit_RefillAmmo": "0x02af8724",
   "Unit_RefillGrenades": "0x02af8858",
-  "unit_get_player": "0x02ab7eec",
-  "object_cannot_die": "0x0070750c",
-
-  "CheckpointInfoAddress": "0x446a290", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
-
+  "Object_PlaceTagAtObjectLocation": "0x02b0ab08",
   "object_set_shield": "0x293a7a8",
-  "Persistence_SetLongKeyForParticipant": "0xd4c388",
+  "Object_SetObjectCannotTakeDamage": "0x2af6f38",
+
+  "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
   "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
   "Persistence_TryCreateKeyFromString": "0xc321d4",
   "Persistence_SetLongKey": "0xddf390",
   "Persistence_SetByteKey": "0x008aef24",
   "Persistence_SetBoolKey": "0x00e06238",
-  "Persistence_GetLongKey": "0x00aaaa00",
-  "Persistence_GetLongKeyForParticipant": "0x00f3e4ac",
-  "Persistence_RemoveLongKeyOverride": "0x02aaf9d8",
-  "Persistence_RemoveLongKeyOverrideForParticipant": "0x02aaf420",
-  "Persistence_TrackProgress": "0x00bd0e10",
-
-
   "Persistence_BatchGetBoolKeys": "0x1bc6c30",
-  "Persistence_BatchGetBoolKeysForParticipant": "0x1bc6830",
   "Persistence_BatchGetByteKeys": "0x1bc6d80",
-  "Persistence_BatchGetByteKeysForParticipant": "0x1bc6910",
   "Persistence_BatchGetLongKeys": "0x1bc6810",
-  "Persistence_BatchGetLongKeysForParticipant": "0x1bc62d0",
 
-  "get_string_id_from_string": "0x00c30a04",
-
-  "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
-
-
-
-  "Object_GetPosition": "0x004f3314",
-  "Engine_CreateObject": "0x0070eb78",
-  "Object_PlaceTagAtObjectLocation": "0x02b0ab08",
-
-  "ThreadLocalStaticInitializer": "0x3CD8370",
-  "Game_TimeSetPaused": "0x2986b40"
+  "GetMessageBuffer": "0x13bf710",
+  "GetMessageBufferSlot": "0x13bee30",
+  "ShowMessage": "0x13c1ef0"
 }

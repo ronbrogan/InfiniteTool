@@ -5,7 +5,6 @@ using PropertyChanged;
 using Superintendent.Core.Remote;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 
 namespace InfiniteTool.GameInterop
@@ -14,6 +13,7 @@ namespace InfiniteTool.GameInterop
     public class GamePersistence
     {
         private readonly GameInstance instance;
+        private InfiniteOffsets.Client engine => instance.Engine;
         private readonly ILogger<GamePersistence> logger;
         private InfiniteOffsets offsets;
         private ArenaAllocator? allocator;
@@ -58,21 +58,15 @@ namespace InfiniteTool.GameInterop
                 var allocator = new ArenaAllocator(this.process, 4 * 1024 * 1024); // 4MB working area
 
                 var keyList = allocator.AllocateList<nint>(persistenceKeys.Length);
-
                 var inList = allocator.AllocateList<nint>(persistenceKeys.Length);
                 inList.AddAsciiStrings(allocator, persistenceKeys);
                 inList.SyncTo();
 
                 this.instance.PrepareForScriptCalls();
+                this.engine.Persistence_BatchTryCreateKeysFromStrings(0, keyList, inList);
 
-                this.process.CallFunction<nint>(
-                    this.offsets.Persistence_BatchTryCreateKeysFromStrings,
-                    0x0,
-                    keyList.Address,
-                    inList.Address);
 
                 keyList.SyncFrom();
-
                 var items = keyList.Count();
 
                 if (items != persistenceKeys.Length)
@@ -149,9 +143,9 @@ namespace InfiniteTool.GameInterop
 
                 //var participantId = (nint)(CurrentParticipantId << 16);
 
-                process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeys, 0x0, globalBools, keyList);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeys, 0x0, globalBytes, keyList);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchGetLongKeys, 0x0, globalLongs, keyList);
+                engine.Persistence_BatchGetBoolKeys(0x0, globalBools, keyList);
+                engine.Persistence_BatchGetByteKeys(0x0, globalBytes, keyList);
+                engine.Persistence_BatchGetLongKeys(0x0, globalLongs, keyList);
 
                 //process.CallFunction<nint>(this.offsets.Persistence_BatchGetBoolKeysForParticipant, 0x0, participantBools, participantId, keyList);
                 //process.CallFunction<nint>(this.offsets.Persistence_BatchGetByteKeysForParticipant, 0x0, participantBytes, participantId, keyList);
@@ -270,27 +264,25 @@ namespace InfiniteTool.GameInterop
                 var participantByteResults = allocator.AllocateList<short>(byteSet.Count);
                 var participantLongResults = allocator.AllocateList<uint>(longSet.Count);
 
-                var participantId = (nint)(CurrentParticipantId << 16);
+                //var participantId = (nint)(CurrentParticipantId << 16);
 
                 this.instance.PrepareForScriptCalls();
 
                 // Clear overrides
-                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrides, 0x0, DiscardList(), boolKeys);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveByteKeyOverrides, 0x0, DiscardList(), byteKeys);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrides, 0x0, DiscardList(), longKeys);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrideForParticipant, 0x0, DiscardList(), participantId, boolKeys);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveByteKeyOverrideForParticipant, 0x0, DiscardList(), participantId, byteKeys);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrideForParticipant, 0x0, DiscardList(), participantId, longKeys);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrides, 0x0, DiscardList(), boolKeys);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveByteKeyOverrides, 0x0, DiscardList(), byteKeys);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrides, 0x0, DiscardList(), longKeys);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveBoolKeyOverrideForParticipant, 0x0, DiscardList(), participantId, boolKeys);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveByteKeyOverrideForParticipant, 0x0, DiscardList(), participantId, byteKeys);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrideForParticipant, 0x0, DiscardList(), participantId, longKeys);
 
                 // Set new values
-                process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeys, 0x0, globalBoolResults, boolKeys, globalBools);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeys, 0x0, globalByteResults, byteKeys, globalBytes);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeys, 0x0, globalLongResults, longKeys, globalLongs);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeysForParticipant, 0x0, participantBoolResults, participantId, boolKeys, participantBools);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeysForParticipant, 0x0, participantByteResults, participantId, byteKeys, participantBytes);
-                process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeysForParticipant, 0x0, participantLongResults, participantId, longKeys, participantLongs);
-
-                //process.CallFunction<nint>(this.offsets.Player_SaveLoadoutToPersistentStorage, participantId);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeys, 0x0, globalBoolResults, boolKeys, globalBools);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeys, 0x0, globalByteResults, byteKeys, globalBytes);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeys, 0x0, globalLongResults, longKeys, globalLongs);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeysForParticipant, 0x0, participantBoolResults, participantId, boolKeys, participantBools);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeysForParticipant, 0x0, participantByteResults, participantId, byteKeys, participantBytes);
+                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeysForParticipant, 0x0, participantLongResults, participantId, longKeys, participantLongs);
 
                 allocator.Reclaim(zero: true);
             }

@@ -8,7 +8,12 @@ using static Iced.Intel.AssemblerRegisters;
 
 namespace InfiniteTool.GameInterop.Internal
 {
-    public class Codegen : Assembler
+    public interface IGeneratedUtilities
+    {
+        nint ShowMessage(uint playerId, nint stringAddress, float duration = 5f);
+    }
+
+    public class Codegen : Assembler, IGeneratedUtilities
     {
         private nint baseAddress;
         private nint nextLocation;
@@ -23,7 +28,7 @@ namespace InfiniteTool.GameInterop.Internal
             this.proc = proc;
         }
 
-        public static Codegen Generate(InfiniteOffsets offsets, IRemoteProcess proc)
+        public static IGeneratedUtilities Generate(InfiniteOffsets offsets, IRemoteProcess proc)
         {
             var cg = new Codegen(offsets, proc);
             cg.GenerateShowMessage();
@@ -56,9 +61,9 @@ namespace InfiniteTool.GameInterop.Internal
 
         private void GenerateShowMessage()
         {
-            nint getMessageBuffer = 0x13bf710;
-            nint getMessageBufferSlot = 0x13bee30;
-            nint showMessage = 0x13c1ef0;
+            nint getMessageBuffer = this.offsets.GetMessageBuffer;
+            nint getMessageBufferSlot = this.offsets.GetMessageBufferSlot;
+            nint showMessage = this.offsets.ShowMessage;
 
             push(r12);
             push(r13);

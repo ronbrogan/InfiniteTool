@@ -103,12 +103,22 @@ namespace InfiniteTool
             this.Game.Instance.ToggleAi();
         }
 
+        private void nukeAi_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.Instance.NukeAi();
+        }
+
         private void coordsToggle_Click(object sender, RoutedEventArgs e)
         {
         }
 
         private void flycamToggle_Click(object sender, RoutedEventArgs e)
         {
+        }
+
+        private void saveProgression_Click(object sender, RoutedEventArgs e)
+        {
+            this.Game.SavePersistence();
         }
 
         private void restock_Click(object sender, RoutedEventArgs e)

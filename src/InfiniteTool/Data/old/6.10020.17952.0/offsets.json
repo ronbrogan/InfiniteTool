@@ -1,6 +1,6 @@
 {
   "ThreadTable": "0x3e93930",
-  "CheckpointInfoAddress": "0x4159490", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
+  "CheckpointInfo": "0x4159490", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
 
   "players": "0x01037688",
   "player_get": "0x023bde20",

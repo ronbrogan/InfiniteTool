@@ -7,7 +7,7 @@
         xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         xmlns:game="clr-namespace:InfiniteTool.GameInterop"
         mc:Ignorable="d"
-        Title="Infinite Tool" Height="325" Width="400">
+        Title="Infinite Tool" Height="325" Width="450">
 
     <Window.Resources>
         <wpfutil:HexValConverter x:Key="HexValConverter"></wpfutil:HexValConverter>
@@ -44,9 +44,6 @@
                         <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
                         <Button x:Name="bindable_doubleRevert" Content="Double Revert" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="doubleRevert_Click"/>
                         <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
-                        <Button x:Name="bindable_pause" Content="Stop Time" HorizontalAlignment="Center" Margin="3" Click="stopTime_Click"/>
-                        <Button x:Name="bindable_aiSuspend" Content="Suspend AI" HorizontalAlignment="Center" Margin="3" Click="suspendAi_Click"/>
-
                         <!--<Button x:Name="bindable_keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>-->
                     </StackPanel>
                     <!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
@@ -64,14 +61,23 @@
                     </DataGrid>-->
                 </DockPanel>
             </TabItem>
+            <TabItem Header="Globals">
+                <DockPanel>
+                    <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
+                        <Button x:Name="bindable_pause" Content="Stop Time" HorizontalAlignment="Center" Margin="3" Click="stopTime_Click"/>
+                        <Button x:Name="bindable_aiSuspend" Content="Suspend AI" HorizontalAlignment="Center" Margin="3" Click="suspendAi_Click"/>
+                        <Button x:Name="bindable_aiNuke" Content="Nuke All AI" HorizontalAlignment="Center" Margin="3" Click="nukeAi_Click"/>
+
+                    </StackPanel>
+                    
+                </DockPanel>
+            </TabItem>
             <TabItem Header="Loadout">
                 <DockPanel>
                     <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
-                        <StackPanel  HorizontalAlignment="Center"  Orientation="Horizontal">
-                            <Button x:Name="bindable_equipment" Content="Unlock All Equipment" HorizontalAlignment="Center" Margin="3" Click="equipment_Click"/>
-                            <Button x:Name="bindable_equipmentReset" Content="Reset Equipment" HorizontalAlignment="Center" Margin="3" Click="equipmentReset_Click"/>
-                            <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
-                        </StackPanel>
+                        <Button x:Name="bindable_equipment" Content="Unlock All Equipment" HorizontalAlignment="Center" Margin="3" Click="equipment_Click"/>
+                        <Button x:Name="bindable_equipmentReset" Content="Reset Equipment" HorizontalAlignment="Center" Margin="3" Click="equipmentReset_Click"/>
+                        <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
                         <Button x:Name="bindable_invuln" Content="Toggle Invuln" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="invulnToggle_Click"/>
                         <Button x:Name="bindable_restock" Content="Restock" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="restock_Click"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
@@ -91,7 +97,30 @@
                     </StackPanel>
                 </DockPanel>
             </TabItem>
-            <TabItem Header="REPL" Visibility="Visible">
+            <TabItem Header="Progression Data" Visibility="Visible">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Save to File" Margin="2" Click="saveProgression_Click"></Button>
+                            <!--<Button Content="Load from File" Margin="2" Click="loadProgression_Click"></Button>-->
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!--<CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>-->
+                            <Button Content="Refresh" Margin="5,0,0,0" Click="refreshPersistence_Click"></Button>
+                        </StackPanel>
+
+                    </DockPanel>
+                    <DataGrid IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=PersistenceEntries}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Binding="{Binding DataType}" Width="50"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Key Name" Binding="{Binding KeyName}" Width="250"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Global Value" Binding="{Binding GlobalValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Participant Value" Binding="{Binding ParticipantValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="REPL" Visibility="Hidden">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
@@ -123,7 +152,7 @@
                     
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Memory" Visibility="Visible">
+            <TabItem Header="Memory" Visibility="Hidden">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
@@ -152,7 +181,7 @@
 
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Dump" Visibility="Visible">
+            <TabItem Header="Dump" Visibility="Hidden">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
@@ -163,59 +192,6 @@
 
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Progression Data" Visibility="Visible">
-                <DockPanel>
-                    <DockPanel DockPanel.Dock="Bottom">
-                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                            <!--<Button Content="Save to File" Margin="2" Click="saveProgression_Click"></Button>
-                            <Button Content="Load from File" Margin="2" Click="loadProgression_Click"></Button>-->
-                        </StackPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <!--<CheckBox Content="Auto Refresh" VerticalAlignment="Center"></CheckBox>-->
-                            <Button Content="Refresh" Margin="5,0,0,0" Click="refreshPersistence_Click"></Button>
-                        </StackPanel>
-
-                    </DockPanel>
-                    <DataGrid IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=PersistenceEntries}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Type" Binding="{Binding DataType}" Width="50"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Key Name" Binding="{Binding KeyName}" Width="250"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Global Value" Binding="{Binding GlobalValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Participant Value" Binding="{Binding ParticipantValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
-            </TabItem>
-            <!--<TabItem Header="Speedrun">
-                <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock TextAlignment="Center">
-                        This sets the current save to act as if it were a post-lights save and quit. 
-                        <LineBreak></LineBreak>
-                        If you want to reset your run, you should click this button, quit, then continue.
-                    </TextBlock>
-                    <Button Content="Set Current Save to Post-Lights" Margin="2" Click="speedrunPostLights_Click" Width="200"></Button>
-                </StackPanel>
-            </TabItem>-->
-            <!--<TabItem Header="Level Selection">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock TextAlignment="Center">
-                        This functionality is experimental and not super useful at the moment.
-                        <LineBreak></LineBreak>
-                        Even if the level is started, progression data will be out of sync
-                    </TextBlock>
-                    <ComboBox ItemsSource="{Binding Maps}" 
-                        DisplayMemberPath="Key" 
-                        SelectedValue="{Binding SelectedMap}"  
-                        SelectedValuePath="Value"
-                        Width="200">
-                    </ComboBox>
-                    <Button Content="Start Level" Margin="2" Click="startLevel_Click" Width="200"></Button>
-                    --><!--<StackPanel Orientation="Horizontal" HorizontalAlignment="center">
-                        <TextBox Width="200"></TextBox>
-                        <Button Content="Start Level at Spawn" Margin="2"></Button>
-                    </StackPanel>--><!--
-                </StackPanel>
-            </TabItem>-->
         </TabControl>
         
     </DockPanel>
