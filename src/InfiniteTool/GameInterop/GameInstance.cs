@@ -312,7 +312,7 @@ namespace InfiniteTool.GameInterop
 
             if (tmpOffsets == InfiniteOffsets.Unknown)
             {
-                MessageBox.Show($"Game Version {version} is not yet supported by this tool");
+                //MessageBox.Show($"Game Version {version} is not yet supported by this tool");
                 return false; 
             }
 

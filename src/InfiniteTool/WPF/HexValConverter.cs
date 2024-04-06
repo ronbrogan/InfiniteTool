@@ -1,5 +1,5 @@
-﻿using System;
-using System.Windows.Data;
+﻿using Avalonia.Data.Converters;
+using System;
 
 namespace InfiniteTool.WPF
 {

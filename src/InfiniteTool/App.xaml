@@ -1,10 +1,9 @@
-﻿<Application x:Class="InfiniteTool.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:InfiniteTool"
-             Startup="Application_Startup"
-             Exit="Application_Exit">
-    <Application.Resources>
+             x:Class="InfiniteTool.App">
 
-    </Application.Resources>
+    <Application.Styles>
+        <FluentTheme DensityStyle="Compact" />
+    </Application.Styles>
+
 </Application>

@@ -1,16 +1,14 @@
-﻿using InfiniteTool.Formats;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+using InfiniteTool.Formats;
 using InfiniteTool.GameInterop;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using PropertyChanged;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows;
+using System.Threading.Tasks;
 using static InfiniteTool.GameInterop.GamePersistence;
 
 namespace InfiniteTool
@@ -51,20 +49,24 @@ namespace InfiniteTool
                 PersistenceEntries.Add(e);
         }
 
-        public void SavePersistence()
+        public async Task SavePersistence(Visual root)
         {
             var data = new ProgressionData(0x1337, PersistenceEntries.ToList());
-            var f = new SaveFileDialog();
-            f.Title = "Select where to save Progression Data";
-            f.RestoreDirectory = true;
-            f.AddExtension = true;
-            f.Filter = "InfiniteTool Progression File |*.infprog";
-            f.DefaultExt = "infprog";
 
-            if(f.ShowDialog() == true)
+            var result = await TopLevel.GetTopLevel(root).StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                using var s = File.OpenWrite(f.FileName);
-                data.Write(s);
+                Title = "Select where to save Progression Data", 
+                DefaultExtension = "infprog", 
+                FileTypeChoices = new []
+                {
+                    new FilePickerFileType("InfiniteTool Progression File"){ Patterns = new string[] { "*.infprog" } }
+                }
+            });
+
+            if (result != null)
+            {
+                using var file = await result.OpenWriteAsync();
+                data.Write(file);
             }
         }
     }

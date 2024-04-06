@@ -1,22 +1,25 @@
-﻿using InfiniteTool.Formats;
-using InfiniteTool.GameInterop;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using InfiniteTool.Keybinds;
 using InfiniteTool.WPF;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using PropertyChanged;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows;
-using System.Windows.Controls;
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace InfiniteTool
 {
 
-    [AddINotifyPropertyChangedInterface]
+    [DoNotNotify]
     public partial class MainWindow : Window
     {
         public readonly Hotkeys Hotkeys;
@@ -36,6 +39,10 @@ namespace InfiniteTool
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            var hwnd = new Windows.Win32.Foundation.HWND(TryGetPlatformHandle().Handle);
+
+            //PInvoke.GetWindowLongPtr()
+            
             KeyBinds.Initialize(this, Hotkeys);
         }
 
@@ -116,9 +123,9 @@ namespace InfiniteTool
         {
         }
 
-        private void saveProgression_Click(object sender, RoutedEventArgs e)
+        private async void saveProgression_Click(object sender, RoutedEventArgs e)
         {
-            this.Game.SavePersistence();
+            await this.Game.SavePersistence(this);
         }
 
         private void restock_Click(object sender, RoutedEventArgs e)
@@ -139,7 +146,7 @@ namespace InfiniteTool
 
         private void ejectMombasa_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Ejecting from the process will cause this tool to cease functioning until the game or the tool is restarted");
+            //MessageBox.Show("Ejecting from the process will cause this tool to cease functioning until the game or the tool is restarted");
             this.Game.Instance.RemoteProcess.EjectMombasa();
         }
 
@@ -169,7 +176,7 @@ namespace InfiniteTool
 
             nint? GetValueFromHexBox(string name)
             {
-                var box = this.FindChildren<TextBox>(t => t.Name == name).FirstOrDefault();
+                var box = this.Find<TextBox>(name);
 
                 if (box == null)
                     throw new Exception($"Couldn't find textbox '{name}'");
@@ -182,7 +189,7 @@ namespace InfiniteTool
 
             void SetResult(string content)
             {
-                this.FindChildren<TextBox>(t => t.Name == "replResult").First().Text = content;
+                this.Find<TextBox>("replResult").Text = content;
             }
         }
 
@@ -237,7 +244,7 @@ namespace InfiniteTool
 
             byte[]? GetDataFromHexBox(string name)
             {
-                var box = this.FindChildren<TextBox>(t => t.Name == name).FirstOrDefault();
+                var box = this.Find<TextBox>(name);
 
                 if (box == null)
                     throw new Exception($"Couldn't find textbox '{name}'");
@@ -251,7 +258,7 @@ namespace InfiniteTool
 
             void SetResult(string content)
             {
-                this.FindChildren<TextBox>(t => t.Name == "writeResult").First().Text = content;
+                this.Find<TextBox>("writeResult").Text = content;
             }
         }
 
@@ -280,7 +287,7 @@ namespace InfiniteTool
 
             nint GetDataFromHexBox(string name)
             {
-                var box = this.FindChildren<TextBox>(t => t.Name == name).FirstOrDefault();
+                var box = this.Find<TextBox>(name);
 
                 if (box == null)
                     throw new Exception($"Couldn't find textbox '{name}'");
@@ -294,25 +301,31 @@ namespace InfiniteTool
 
             void SetResult(string content)
             {
-                this.FindChildren<TextBox>(t => t.Name == "readResult").First().Text = content;
+                this.Find<TextBox>("readResult").Text = content;
             }
         }
 
-        private void dumpExe_Click(object sender, RoutedEventArgs e)
+        private async void dumpExe_Click(object sender, RoutedEventArgs e)
         {
             var proc = this.Game.Instance.RemoteProcess;
 
             var start = 0;
             var size = 75_002_792;//proc.Process.MainModule.ModuleMemorySize;
 
-
-
-
-            var sf = new SaveFileDialog();
-            if(sf.ShowDialog().GetValueOrDefault())
+            var result = await GetTopLevel(this).StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                using var file = sf.OpenFile();
+                Title = "Save location"
+            });
 
+            if(result != null)
+            {
+                using var file = await result.OpenWriteAsync();
+
+                WriteTo(file);
+            }
+
+            void WriteTo(Stream file)
+            {
                 var buf = new byte[4096].AsSpan();
 
                 try
@@ -338,15 +351,10 @@ namespace InfiniteTool
                 {
                     proc.ResumeAppThreads();
                 }
-                
+
 
                 file.Close();
             }
-
-
-
         }
-
-        
     }
 }

@@ -1,13 +1,14 @@
-﻿using PropertyChanged;
-using System.Windows;
-using System.Windows.Input;
+﻿using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using PropertyChanged;
 
 namespace InfiniteTool.Keybinds
 {
     /// <summary>
     /// Interaction logic for KeyBindDialog.xaml
     /// </summary>
-    [AddINotifyPropertyChangedInterface]
+    [DoNotNotify]
     public partial class KeyBindDialog : Window
     {
         public ModifierKeys ModifierKeys { get; set; }
@@ -18,14 +19,19 @@ namespace InfiniteTool.Keybinds
         public string BindingString { get; set; }
         private bool committed = false;
 
+        public bool DialogResult { get; set; }
+
         public KeyBindDialog()
         {
             InitializeComponent();
             this.DataContext = this;
-            this.KeyDown += KeyBindDialog_KeyDown;
-            this.KeyUp += KeyBindDialog_KeyUp;
+
+
+            InputElement.KeyDownEvent.AddClassHandler<TopLevel>(KeyBindDialog_KeyDown, handledEventsToo: true);
+            InputElement.KeyUpEvent.AddClassHandler<TopLevel>(KeyBindDialog_KeyUp, handledEventsToo: true);
+
             this.SizeToContent = SizeToContent.WidthAndHeight;
-            this.ResizeMode = ResizeMode.NoResize;
+            this.CanResize = false;
         }
 
         private void KeyBindDialog_KeyUp(object sender, KeyEventArgs e)
@@ -86,7 +92,8 @@ namespace InfiniteTool.Keybinds
             {
                 if(e.Key == Key.System)
                 {
-                    MainKey = e.SystemKey;
+                    // todo: broke on avalonia port
+                    MainKey = e.Key;
                 }
                 else
                 {

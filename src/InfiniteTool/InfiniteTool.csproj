@@ -4,10 +4,10 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
-		<UseWPF>true</UseWPF>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>infinity.ico</ApplicationIcon>
 		<Version>1.0.0-preview1</Version>
+		<Platforms>x64</Platforms>
 	</PropertyGroup>
 
 
@@ -15,11 +15,26 @@
 		<Content Include="Data\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<None Remove="About.xaml" />
+		<None Remove="App.xaml" />
 		<None Remove="Data\weapons.json" />
+		<None Remove="Keybinds\KeyBindDialog.xaml" />
+		<None Remove="MainWindow.xaml" />
+		<AvaloniaXaml Include="About.xaml" />
+		<AvaloniaXaml Include="App.xaml" />
+		<AvaloniaXaml Include="Keybinds\KeyBindDialog.xaml" />
+		<AvaloniaXaml Include="MainWindow.xaml" />
 		<Content Include="infinity.ico" />
+		<AvaloniaResource Include="infinity.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+		<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.10" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
+		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.10" />
+		
 		<PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.2">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,6 +44,9 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta">
+		  <PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 		<PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
 		<PackageReference Include="Serilog" Version="2.10.0" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />

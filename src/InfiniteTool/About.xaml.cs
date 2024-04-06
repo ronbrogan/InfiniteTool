@@ -1,12 +1,14 @@
-﻿using System.Diagnostics;
+﻿using Avalonia.Controls;
+using PropertyChanged;
+using System.Diagnostics;
 using System.Reflection;
-using System.Windows;
 
 namespace InfiniteTool
 {
     /// <summary>
     /// Interaction logic for About.xaml
     /// </summary>
+    [DoNotNotify]
     public partial class About : Window
     {
         public About()
@@ -14,7 +16,7 @@ namespace InfiniteTool
             InitializeComponent();
             this.DataContext = this;
             this.SizeToContent = SizeToContent.WidthAndHeight;
-            this.ResizeMode = ResizeMode.NoResize;
+            this.CanResize = false;
         }
 
         public string AppInfo

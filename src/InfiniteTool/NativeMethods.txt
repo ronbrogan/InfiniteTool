@@ -1,0 +1,5 @@
+﻿GetWindowLongPtrW
+SetWindowLongPtrW
+CallWindowProc
+GetMessage
+PeekMessage

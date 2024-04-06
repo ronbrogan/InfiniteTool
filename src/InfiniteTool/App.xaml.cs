@@ -1,9 +1,13 @@
-﻿using Grpc.Core;
+﻿using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Grpc.Core;
 using InfiniteTool.GameInterop;
 using InfiniteTool.GameInterop.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PropertyChanged;
 using Serilog;
 using Serilog.Core;
 using Superintendent.Core;
@@ -14,18 +18,17 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace InfiniteTool
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
+    [DoNotNotify]
     public partial class App : Application
     {
         private IHost _host;
 
         public string LogLocation;
+
+        public static MainWindow PrimaryWindow { get; private set; }
 
         public App()
         {
@@ -46,7 +49,7 @@ namespace InfiniteTool
                     return;
                 }
 
-                if(e.Exception is RpcException rpce && rpce.StatusCode == StatusCode.Cancelled)
+                if (e.Exception is RpcException rpce && rpce.StatusCode == StatusCode.Cancelled)
                 {
                     // ignore canceled RPCs, it's expected to happen :)
                     return;
@@ -58,7 +61,7 @@ namespace InfiniteTool
             Console.SetOut(new TextWriterLogger(serilogLogger));
 
             serilogLogger.Information("AppInfo: " + Assembly.GetExecutingAssembly().ToString());
-            
+
 
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices(services =>
@@ -74,9 +77,16 @@ namespace InfiniteTool
                 .Build();
         }
 
-        private async void Application_Startup(object sender, StartupEventArgs e)
+        public override void Initialize()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+
+        public override async void OnFrameworkInitializationCompleted()
         {
             await this.StartupImpl();
+
+            base.OnFrameworkInitializationCompleted();
         }
 
         private async Task StartupImpl()
@@ -90,7 +100,16 @@ namespace InfiniteTool
             var persistence = _host.Services.GetRequiredService<GamePersistence>();
 
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            //mainWindow.Show();
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = mainWindow;
+            }
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+            {
+                singleViewPlatform.MainView = mainWindow;
+            }
 
             _ = Task.Run(() =>
             {
@@ -115,21 +134,13 @@ namespace InfiniteTool
             {
                 if (wex.NativeErrorCode == 0x4C7/*ERROR_CANCELLED*/)
                 {
-                    MessageBox.Show("Cannot attach to the game, it's likely running as Admin and this tool is not.", "Infinite Tool Error");
+                    //MessageBox.Show("Cannot attach to the game, it's likely running as Admin and this tool is not.", "Infinite Tool Error");
                     Process.GetCurrentProcess().Kill();
                 }
                 else
                 {
                     throw;
                 }
-            }
-        }
-
-        private async void Application_Exit(object sender, ExitEventArgs e)
-        {
-            using (_host)
-            {
-                await _host.StopAsync(TimeSpan.FromSeconds(5));
             }
         }
 
