@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 namespace InfiniteTool
 {
     [GenerateClient]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public partial class InfiniteOffsets
     {
         public static readonly InfiniteOffsets Unknown = new();
@@ -15,7 +16,6 @@ namespace InfiniteTool
         [SpanPointer]
         public Ptr<GameThreadTableEntry> ThreadTable { get; set; }
 
-        [JsonPropertyName("game_revert")]
         public FunVoid game_revert { get; set; }
 
         public FunVoid game_save_fast { get; set; }
@@ -89,4 +89,5 @@ namespace InfiniteTool
         [ParamNames("buffer", "bufferSlot", "duration", "stringPointerUtf16")]
         public FunVoid<int, nint, float, nint> ShowMessage { get; set; }
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 }

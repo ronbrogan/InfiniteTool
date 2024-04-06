@@ -25,6 +25,14 @@
   "Persistence_BatchGetByteKeys": "0x1bc6d80",
   "Persistence_BatchGetLongKeys": "0x1bc6810",
 
+  "Persistence_IsBoolKeyOverriden": "0x02aafa34",
+  "Persistence_IsByteKeyOverriden": "0x00f43a7c",
+  "Persistence_IsLongKeyOverriden": "0x02aaf9f4",
+
+  "Persistence_IsBoolKeyOverridenForParticipant": "0x02aaf678",
+  "Persistence_IsByteKeyOverridenForParticipant": "0x02aaf86c",
+  "Persistence_IsLongKeyOverridenForParticipant": "0x02aaf6c0",
+
   "GetMessageBuffer": "0x13bf710",
   "GetMessageBufferSlot": "0x13bee30",
   "ShowMessage": "0x13c1ef0"
