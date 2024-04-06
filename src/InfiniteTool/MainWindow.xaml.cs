@@ -39,10 +39,6 @@ namespace InfiniteTool
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var hwnd = new Windows.Win32.Foundation.HWND(TryGetPlatformHandle().Handle);
-
-            //PInvoke.GetWindowLongPtr()
-            
             KeyBinds.Initialize(this, Hotkeys);
         }
 

@@ -7,6 +7,9 @@
         xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         xmlns:game="clr-namespace:InfiniteTool.GameInterop"
         mc:Ignorable="d"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
         Title="Infinite Tool" Height="325" Width="450"
         Icon="infinity.ico">
 
@@ -15,6 +18,16 @@
     </Window.Resources>
     
     <DockPanel Margin="0,0,0,0">
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+			 BackgroundSource="Digger"
+			 TintColor="Black"
+			 TintOpacity="1"
+			 MaterialOpacity="0.55" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+        
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
                 <MenuItem Header="Open Log Location" Click="openLogLocation_Click"></MenuItem>
@@ -23,54 +36,30 @@
 
             <MenuItem Header="About" Click="aboutMenu_Click"></MenuItem>
         </Menu>
-        <!--<StatusBar  DockPanel.Dock="Bottom">
-            <StatusBarItem>
-                <TextBlock>
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}PID: {0}">
-                            <Binding Path="Instance.ProcessId" Mode="OneWay" />
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Text="{Binding Path=Instance.PlayerPosition, Mode=OneWay}"></TextBlock>
-            </StatusBarItem>
-        </StatusBar>-->
-        <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <TabItem Header="Checkpoints">
-                <DockPanel>
-                    <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
-                        <Button x:Name="bindable_cp" Content="Checkpoint" HorizontalAlignment="Center" Margin="3" Click="cp_Click"/>
-                        <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Center" Margin="3" Click="revert_Click"/>
-                        <Button x:Name="bindable_doubleRevert" Content="Double Revert" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="doubleRevert_Click"/>
-                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="suppressCp_Click"/>
-                        <!--<Button x:Name="bindable_keepCheckpoint" Content="Keep CP"  HorizontalAlignment="Center" Margin="3" Click="keepCp_Click"/>-->
-                    </StackPanel>
-                    <!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
-                        <Button x:Name="saveCp" Content="Save As" HorizontalAlignment="Center" Margin="3" Click="saveCp_Click" />
-                        <Button x:Name="loadCp" Content="Load From File" HorizontalAlignment="Center" Margin="3" Click="loadCp_Click" />
-                        <Button x:Name="injectCp" Content="Inject" HorizontalAlignment="Center" Margin="3" Click="injectCp_Click" />
-                    </StackPanel>-->
-                    <!--<DataGrid  IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=Checkpoints}" SelectedValue="{Binding Path=SelectedCheckpoint}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header=""></DataGridTextColumn>
-                            <DataGridTextColumn Header="Level" Binding="{Binding LevelName}" Width="250"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Time" Binding="{Binding GameTime}" Width="75"></DataGridTextColumn>
-                            <DataGridTextColumn Header="File" Binding="{Binding Filename}" Width="150"></DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>-->
-                </DockPanel>
-            </TabItem>
-            <TabItem Header="Globals">
-                <DockPanel>
-                    <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
-                        <Button x:Name="bindable_pause" Content="Stop Time" HorizontalAlignment="Center" Margin="3" Click="stopTime_Click"/>
-                        <Button x:Name="bindable_aiSuspend" Content="Suspend AI" HorizontalAlignment="Center" Margin="3" Click="suspendAi_Click"/>
-                        <Button x:Name="bindable_aiNuke" Content="Nuke All AI" HorizontalAlignment="Center" Margin="3" Click="nukeAi_Click"/>
+        <StackPanel  DockPanel.Dock="Bottom">
 
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}PID: {0}">
+                        <Binding Path="Instance.ProcessId" Mode="OneWay" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StackPanel>
+        <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <TabItem Header="Actions">
+                <DockPanel>
+                    <StackPanel Orientation="Vertical" DockPanel.Dock="Top" Margin="0 20 0 0">
+                        <Button x:Name="bindable_cp" Content="Checkpoint" HorizontalAlignment="Stretch"  Margin="3" Click="cp_Click"/>
+                        <Button x:Name="bindable_revert" Content="Revert"  HorizontalAlignment="Stretch" Margin="3" Click="revert_Click"/>
+                        <Button x:Name="bindable_doubleRevert" Content="Double Revert" IsEnabled="True" HorizontalAlignment="Stretch" Margin="3" Click="doubleRevert_Click"/>
+                        <Button x:Name="bindable_toggleCheckpointSuppression" Content="Suppress CPs" IsEnabled="True" HorizontalAlignment="Stretch" Margin="3" Click="suppressCp_Click"/>
+                        <Button x:Name="bindable_pause" Content="Stop Time" HorizontalAlignment="Stretch" Margin="3" Click="stopTime_Click"/>
+                        <Button x:Name="bindable_aiSuspend" Content="Suspend AI" HorizontalAlignment="Stretch" Margin="3" Click="suspendAi_Click"/>
+                        <Button x:Name="bindable_aiNuke" Content="Nuke All AI" HorizontalAlignment="Stretch" Margin="3" Click="nukeAi_Click"/>
+                        <Button x:Name="bindable_invuln" Content="Toggle Invuln" IsEnabled="True" HorizontalAlignment="Stretch" Margin="3" Click="invulnToggle_Click"/>
+                        <Button x:Name="bindable_restock" Content="Restock" IsEnabled="True" HorizontalAlignment="Stretch" Margin="3" Click="restock_Click"/>
                     </StackPanel>
-                    
                 </DockPanel>
             </TabItem>
             <TabItem Header="Loadout">
@@ -79,8 +68,7 @@
                         <Button x:Name="bindable_equipment" Content="Unlock All Equipment" HorizontalAlignment="Center" Margin="3" Click="equipment_Click"/>
                         <Button x:Name="bindable_equipmentReset" Content="Reset Equipment" HorizontalAlignment="Center" Margin="3" Click="equipmentReset_Click"/>
                         <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
-                        <Button x:Name="bindable_invuln" Content="Toggle Invuln" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="invulnToggle_Click"/>
-                        <Button x:Name="bindable_restock" Content="Restock" IsEnabled="True" HorizontalAlignment="Center" Margin="3" Click="restock_Click"/>
+                        
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
                             <ComboBox Width="250" ItemsSource="{Binding Weapons}" SelectedItem="{Binding SelectedWeapon}">
                                 <ComboBox.ItemTemplate>
@@ -98,7 +86,7 @@
                     </StackPanel>
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Progression Data">
+            <TabItem Header="Progression Data" IsVisible="false">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
@@ -121,7 +109,7 @@
                     </DataGrid>
                 </DockPanel>
             </TabItem>
-            <TabItem Header="REPL">
+            <TabItem Header="REPL" IsVisible="false">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
@@ -153,7 +141,7 @@
                     
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Memory">
+            <TabItem Header="Memory" IsVisible="false">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
@@ -182,7 +170,7 @@
 
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Dump">
+            <TabItem Header="Dump" IsVisible="false">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
