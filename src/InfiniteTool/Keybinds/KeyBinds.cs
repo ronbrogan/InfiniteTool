@@ -88,7 +88,7 @@ namespace InfiniteTool.Keybinds
 
                 await dialog.ShowDialog((Window)TopLevel.GetTopLevel(bindable));
 
-                if (dialog.DialogResult && dialog.MainKey != Key.None)
+                if (dialog.DialogResult && dialog.Data.MainKey != Key.None)
                 {
                     var bindableName = bindable.Name.Substring("bindable_".Length);
                     if (info.Bindings.TryGetValue(bindableName, out var binding))
@@ -97,10 +97,10 @@ namespace InfiniteTool.Keybinds
                         bindable.Content = info.Text;
                     }
 
-                    if (info.Hotkeys.TryRegisterHotKey(dialog.ModifierKeys, dialog.MainKey, () => bindable.RaiseEvent(new RoutedEventArgs(Button.ClickEvent))))
+                    if (info.Hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, () => bindable.RaiseEvent(new RoutedEventArgs(Button.ClickEvent))))
                     {
-                        bindable.Content = info.Text + " <" + Hotkeys.KeyToString(dialog.ModifierKeys, dialog.MainKey) + ">";
-                        info.Bindings[bindableName] = (dialog.ModifierKeys, dialog.MainKey);
+                        bindable.Content = info.Text + " <" + Hotkeys.KeyToString(dialog.Data.ModifierKeys, dialog.Data.MainKey) + ">";
+                        info.Bindings[bindableName] = (dialog.Data.ModifierKeys, dialog.Data.MainKey);
                         SaveBindings();
                     }
                 }

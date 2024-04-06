@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:InfiniteTool"
         xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         mc:Ignorable="d"
-        Title="About" Height="400" Width="350">
+        Title="About" Height="400" Width="350"
+        Icon="infinity.ico">
     <Grid>
         <TextBlock Margin="10">
             <Run FontWeight="Bold" FontSize="16">InfiniteTool </Run>
