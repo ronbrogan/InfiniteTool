@@ -7,18 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfiniteTool", "InfiniteToo
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
-		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Debug|x64.ActiveCfg = Debug|x64
 		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Debug|x64.Build.0 = Debug|x64
-		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Release|x64.ActiveCfg = Release|x64
 		{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection

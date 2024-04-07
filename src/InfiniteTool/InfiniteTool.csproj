@@ -15,20 +15,12 @@
 		<Content Include="Data\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<None Remove="About.xaml" />
-		<None Remove="App.xaml" />
-		<None Remove="Data\weapons.json" />
-		<None Remove="Keybinds\KeyBindDialog.xaml" />
-		<None Remove="MainWindow.xaml" />
-		<AvaloniaXaml Include="About.xaml" />
-		<AvaloniaXaml Include="App.xaml" />
-		<AvaloniaXaml Include="Keybinds\KeyBindDialog.xaml" />
-		<AvaloniaXaml Include="MainWindow.xaml" />
 		<Content Include="infinity.ico" />
 		<AvaloniaResource Include="infinity.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.10" />
 		<PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
 		<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.10" />

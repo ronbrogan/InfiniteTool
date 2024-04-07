@@ -2,9 +2,6 @@
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
-using Avalonia.VisualTree;
-using InfiniteTool.WPF;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +22,9 @@ namespace InfiniteTool.Keybinds
 
             var bindables = window.GetSelfAndLogicalDescendants()
                 .OfType<Button>()
-                .Where(b => b.Name != null && b.Name.StartsWith("bindable_"));
+                .Where(b => b.Name != null && b.Name.StartsWith("bindable_"))
+                .ToHashSet();
+
             var ctxMenu = BuildMenu();
 
             foreach (var bindable in bindables)

@@ -3,16 +3,16 @@ using Avalonia.Input;
 using Avalonia.Win32.Input;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace InfiniteTool
 {
@@ -29,128 +29,91 @@ namespace InfiniteTool
     public sealed class Hotkeys : IDisposable
     {
         private const int WmHotKey = 0x0312;
+        private const int WmRegisterHotKey = 0x8000;
+        private const int WmUnRegisterHotKey = 0x8001;
+
         private readonly ILogger? logger;
-        private readonly IntPtr windowHandle;
         private readonly WindowsNative hotkeyInterop;
         private readonly HashSet<int> identifiers = new();
         private readonly Dictionary<(ModifierKeys mods, Key key), int> registeredKeys = new();
         private readonly Dictionary<int, Action> keyCallbacks = new();
-        private object sync = new();
         private readonly Random random = new Random();
         private bool disposedValue;
 
-        private class HotkeyOperation
-        {
-            private ManualResetEventSlim Completion = new();
-            private bool Result;
-
-            public int Id;
-            public ModifierKeys Modifiers;
-            public int? VirtualKey;
-
-            private HotkeyOperation(int identifier, ModifierKeys modifiers, int v)
-            {
-                Id = identifier;
-                Modifiers = modifiers;
-                VirtualKey = v;
-            }
-
-            private HotkeyOperation(int idToRemove)
-            {
-                Id = idToRemove;
-                VirtualKey = null;
-            }
-
-            public bool WaitForResult()
-            {
-                Completion.Wait();
-                return Result;
-            }
-
-            internal void SetResult(bool v)
-            {
-                this.Result = v;
-                Completion.Set();
-            }
-
-            public static bool Register(int identifier, ModifierKeys modifiers, int v)
-            {
-                var op = new HotkeyOperation(identifier, modifiers, v);
-                currentOperation = op;
-                return op.WaitForResult();
-            }
-
-            public static bool UnRegister(int identifier)
-            {
-                var op = new HotkeyOperation(identifier);
-                currentOperation = op;
-                return op.WaitForResult();
-            }
-
-            public static HotkeyOperation? currentOperation;
-        }
-
         private Thread workThread;
+        private uint workThreadId;
 
-        public Hotkeys(Window window, ILogger? logger = null)
+        public Hotkeys(ILogger? logger = null)
         {
-            this.windowHandle = window.TryGetPlatformHandle().Handle;
             this.logger = logger;
             this.hotkeyInterop = new WindowsNative();
-            this.workThread = new Thread(ThreadWork)
+
+            if(!Design.IsDesignMode)
             {
-                IsBackground = true
-            };
-            this.workThread.Start(this);
+                this.workThread = new Thread(ThreadWork)
+                {
+                    IsBackground = true
+                };
+                this.workThread.Start(this);
+            }
         }
 
+        public ConcurrentDictionary<int, (ManualResetEventSlim, bool)> operations = new();
         public bool TryRegisterHotKey(ModifierKeys modifiers, Key key, Action callback)
-        { 
-            lock(sync)
+        {
+            var identifier = random.Next();
+
+            while (!this.identifiers.Add(identifier))
             {
-                var identifier = random.Next();
-
-                while (!this.identifiers.Add(identifier))
-                {
-                    unchecked { identifier++; }
-                }
-
-                if (this.registeredKeys.TryAdd((modifiers, key), identifier))
-                {
-                    var result = HotkeyOperation.Register(identifier, modifiers, KeyInterop.VirtualKeyFromKey(key));
-
-                    if (result)
-                    {
-                        this.keyCallbacks.Add(identifier, callback);
-                        this.logger?.LogInformation("Registered binding: {key} with ID: {id}", KeyToString(modifiers, key), identifier);
-                        return true;
-                    }
-                }
-
-                this.logger?.LogInformation("Unable to register binding: {key} with ID: {id}", KeyToString(modifiers, key), identifier);
-                this.identifiers.Remove(identifier);
-                this.registeredKeys.Remove((modifiers, key));
-                return false;
+                unchecked { identifier++; }
             }
+
+            if (this.registeredKeys.TryAdd((modifiers, key), identifier))
+            {
+                var mre = new ManualResetEventSlim();
+                operations.TryAdd(identifier, (mre, false));
+
+                var lp = (nint)modifiers << 32 | KeyInterop.VirtualKeyFromKey(key);
+                PInvoke.PostThreadMessage(workThreadId, WmRegisterHotKey, new WPARAM((nuint)identifier), new LPARAM(lp));
+
+                mre.Wait();
+                operations.TryRemove(identifier, out var result);
+
+                if (result.Item2)
+                {
+                    this.keyCallbacks.Add(identifier, callback);
+                    this.logger?.LogInformation("Registered binding: {key} with ID: {id}", KeyToString(modifiers, key), identifier);
+                    return true;
+                }
+            }
+
+            this.logger?.LogInformation("Unable to register binding: {key} with ID: {id}", KeyToString(modifiers, key), identifier);
+            this.identifiers.Remove(identifier);
+            this.registeredKeys.Remove((modifiers, key));
+            return false;
+            
         }
 
         public void UnregisterHotKey(ModifierKeys modifiers, Key key)
         {
-            lock(sync)
+            if (!this.registeredKeys.TryGetValue((modifiers, key), out var id))
             {
-                if (!this.registeredKeys.TryGetValue((modifiers, key), out var id))
-                {
-                    return;
-                }
-
-                var result = HotkeyOperation.UnRegister(id);
-
-                this.registeredKeys.Remove((modifiers, key));
-                this.keyCallbacks.Remove(id);
-                this.identifiers.Remove(id);
-
-                this.logger?.LogInformation("Unregistered binding: {key} with ID: {id}", KeyToString(modifiers, key), id);
+                return;
             }
+
+            var mre = new ManualResetEventSlim();
+            operations.TryAdd(id, (mre, false));
+
+            PInvoke.PostThreadMessage(workThreadId, WmUnRegisterHotKey, new WPARAM((nuint)id), new LPARAM());
+
+            mre.Wait();
+            operations.TryRemove(id, out var result);
+
+            this.registeredKeys.Remove((modifiers, key));
+            this.keyCallbacks.Remove(id);
+            this.identifiers.Remove(id);
+
+            this.logger?.LogInformation("Unregistered binding: {key} with ID: {id}", KeyToString(modifiers, key), id);
         }
 
         public static string KeyToString(ModifierKeys modifiers, Key key)
@@ -210,50 +173,74 @@ namespace InfiniteTool
             GC.SuppressFinalize(this);
         }
 
-
         private static void ThreadWork(object state)
         {
             var hk = (Hotkeys)state;
 
+            hk.workThreadId = PInvoke.GetCurrentThreadId();
+
             while (!hk.disposedValue)
             {
-                var worked = false;
-                if (HotkeyOperation.currentOperation is { } op)
+                var result = PInvoke.GetMessage(out var message, HWND.Null, 0, 0);
+
+                switch(message.message)
                 {
-                    HotkeyOperation.currentOperation = null;
-
-                    if (op.VirtualKey.HasValue)
-                        op.SetResult(hk.hotkeyInterop.RegisterHotKey(0, op.Id, op.Modifiers, op.VirtualKey.Value));
-                    else
-                        op.SetResult(hk.hotkeyInterop.UnregisterHotKey(0, op.Id));
-
-                    worked = true;
+                    case WmHotKey:
+                        ProcessKey(message);
+                        break;
+                    case WmRegisterHotKey:
+                        RegisterKey(message);
+                        break;
+                    case WmUnRegisterHotKey:
+                        UnRegisterKey(message);
+                        break;
                 }
-
-                if (PInvoke.PeekMessage(out var msg, HWND.Null, 0, 0, Windows.Win32.UI.WindowsAndMessaging.PEEK_MESSAGE_REMOVE_TYPE.PM_REMOVE))
-                {
-                    if (msg.message == WmHotKey && hk.keyCallbacks.TryGetValue((int)msg.wParam.Value, out var cb))
-                    {
-                        try
-                        {
-                            cb?.Invoke();
-                        }
-                        catch (Exception ex)
-                        {
-                            hk.logger?.LogError(ex, "Hotkey exception for ID: {id}", msg.wParam);
-                        }
-                    }
-
-                    worked = true;
-                }
-
-                // sleep for a while if we didn't just work
-                Thread.Sleep(worked ? 0 : 100);
             }
 
             foreach (var id in hk.identifiers)
             {
                 hk.hotkeyInterop.UnregisterHotKey(0, id);
+            }
+
+            void ProcessKey(MSG message)
+            {
+                if (hk.keyCallbacks.TryGetValue((int)message.wParam.Value, out var cb))
+                {
+                    try
+                    {
+                        cb?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        hk.logger?.LogError(ex, "Hotkey exception for ID: {id}", message.wParam);
+                    }
+                }
+            }
+
+            void RegisterKey(MSG message)
+            {
+                var id = (int)message.wParam.Value;
+                var vk = (int)message.lParam.Value;
+                var mods = (ModifierKeys)(message.lParam.Value >> 32);
+                var result = hk.hotkeyInterop.RegisterHotKey(0, id, mods, vk);
+
+                if(hk.operations.TryGetValue(id, out var op))
+                {
+                    hk.operations[id] = (op.Item1, result);
+                    op.Item1.Set();
+                }
+            }
+
+            void UnRegisterKey(MSG message)
+            {
+                var id = (int)message.wParam.Value;
+                var result = hk.hotkeyInterop.UnregisterHotKey(0, id);
+
+                if (hk.operations.TryGetValue(id, out var op))
+                {
+                    hk.operations[id] = (op.Item1, result);
+                    op.Item1.Set();
+                }
             }
         }
 

@@ -1,20 +1,15 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using InfiniteTool.Keybinds;
-using InfiniteTool.WPF;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Windows.Win32;
-using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace InfiniteTool
 {
@@ -31,10 +26,14 @@ namespace InfiniteTool
         {
             InitializeComponent();
             this.Game = context;
-            this.Hotkeys = new Hotkeys(this, logger);
+            this.Hotkeys = new Hotkeys(logger);
             this.DataContext = context;
             this.logger = logger;
             this.Loaded += MainWindow_Loaded;
+
+            this.PointerMoved += InputElement_OnPointerMoved;
+            this.PointerPressed += InputElement_OnPointerPressed;
+            this.PointerReleased += InputElement_OnPointerReleased;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -351,6 +350,33 @@ namespace InfiniteTool
 
                 file.Close();
             }
+        }
+
+        private bool _mouseDownForWindowMoving = false;
+        private PointerPoint _originalPoint;
+
+        private void InputElement_OnPointerMoved(object? sender, PointerEventArgs e)
+        {
+            if (!_mouseDownForWindowMoving) return;
+
+            PointerPoint currentPoint = e.GetCurrentPoint(this);
+            Position = new PixelPoint(Position.X + (int)(currentPoint.Position.X - _originalPoint.Position.X),
+                Position.Y + (int)(currentPoint.Position.Y - _originalPoint.Position.Y));
+        }
+
+        private void InputElement_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (e.Source is not Border b) return;
+
+            if (WindowState == WindowState.Maximized || WindowState == WindowState.FullScreen) return;
+
+            _mouseDownForWindowMoving = true;
+            _originalPoint = e.GetCurrentPoint(this);
+        }
+
+        private void InputElement_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            _mouseDownForWindowMoving = false;
         }
     }
 }

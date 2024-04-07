@@ -3,3 +3,5 @@ SetWindowLongPtrW
 CallWindowProc
 GetMessage
 PeekMessage
+PostThreadMessage
+GetCurrentThreadId
