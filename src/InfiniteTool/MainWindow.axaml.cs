@@ -100,12 +100,12 @@ namespace InfiniteTool
             this.Game.Instance.SpawnVehicle(this.Game.SelectedVehicle);
         }
 
-        private void character_Click(object sender, RoutedEventArgs e)
+        private void biped_Click(object sender, RoutedEventArgs e)
         {
-            if (this.Game.SelectedCharacter == null)
+            if (this.Game.SelectedBiped == null)
                 return;
 
-            this.Game.Instance.SpawnCharacter(this.Game.SelectedCharacter);
+            this.Game.Instance.SpawnBiped(this.Game.SelectedBiped);
         }
 
         private void skull_Click(object sender, RoutedEventArgs e)

@@ -266,7 +266,7 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void SpawnCharacter(TagInfo character)
+        public void SpawnBiped(TagInfo character)
         {
             // Our func takes these 'global' tag IDs, but will only succeed if they're
             // available in the 'tag translation table' (as I'm calling it)
@@ -277,13 +277,13 @@ namespace InfiniteTool.GameInterop
 
             var name = Path.GetFileNameWithoutExtension(character.Name);
 
-            Operation($"Character Requested: {name}", () =>
+            Operation($"Biped Requested: {name}", () =>
             {
                 var player = Engine.player_get(0);
                 var created = Engine.Object_PlaceTagAtObjectLocation(character.Id, player);
 
                 if ((int)created == -1)
-                    ShowMessage("failed to spawn char");
+                    ShowMessage("failed to spawn biped");
                 else
                     ShowMessage($"   spawned {name}");
             });

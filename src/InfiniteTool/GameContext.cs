@@ -33,7 +33,7 @@ namespace InfiniteTool
 
         public ObservableCollection<TagInfo> Weapons { get; }
         public ObservableCollection<TagInfo> Vehicles { get; }
-        public ObservableCollection<TagInfo> Characters { get; }
+        public ObservableCollection<TagInfo> Bipeds { get; }
 
 
         public ObservableCollection<ProgressionEntry> PersistenceEntries { get; } = new();
@@ -41,7 +41,7 @@ namespace InfiniteTool
 
         public TagInfo SelectedWeapon { get; set; }
         public TagInfo SelectedVehicle { get; set; }
-        public TagInfo SelectedCharacter { get; set; }
+        public TagInfo SelectedBiped { get; set; }
 
         public ObservableCollection<SkullInfo> Skulls { get; set; }
 
@@ -54,7 +54,7 @@ namespace InfiniteTool
             var tags = Tags.LoadTags();
             this.Weapons = new ObservableCollection<TagInfo>(tags.Weapons);
             this.Vehicles = new ObservableCollection<TagInfo>(tags.Vehicles);
-            this.Characters = new ObservableCollection<TagInfo>(tags.Characters);
+            this.Bipeds = new ObservableCollection<TagInfo>(tags.Bipeds);
 
             PersistenceEntriesSource = new FlatTreeDataGridSource<ProgressionEntry>(this.PersistenceEntries)
             {

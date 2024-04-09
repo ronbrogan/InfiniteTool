@@ -105,8 +105,8 @@
 							<AutoCompleteBox Width="350"
 											 VerticalAlignment="Center"
 											 Watermark="Search for weapon tag"
-											 ItemsSource="{Binding Characters}"
-											 SelectedItem="{Binding SelectedCharacter}"
+											 ItemsSource="{Binding Bipeds}"
+											 SelectedItem="{Binding SelectedBiped}"
 											 FilterMode="ContainsOrdinal"
 											 MinimumPrefixLength="0">
 								<AutoCompleteBox.ItemTemplate>
@@ -115,7 +115,7 @@
 									</DataTemplate>
 								</AutoCompleteBox.ItemTemplate>
 							</AutoCompleteBox>
-							<Button x:Name="bindable_char" Content="Spawn Character" HorizontalAlignment="Center" Margin="3" Click="character_Click"/>
+							<Button x:Name="bindable_char" Content="Spawn Biped" HorizontalAlignment="Center" Margin="3" Click="biped_Click"/>
 						</StackPanel>
                     </StackPanel>
                 </DockPanel>

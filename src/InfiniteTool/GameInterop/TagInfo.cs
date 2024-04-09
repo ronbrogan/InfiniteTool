@@ -10,6 +10,7 @@ namespace InfiniteTool.GameInterop
         public List<TagInfo> WeaponConfigs { get; set; }
         public List<TagInfo> Vehicles { get; set; }
         public List<TagInfo> Characters { get; set; }
+        public List<TagInfo> Bipeds { get; set; }
 
         public static Tags LoadTags()
         {
