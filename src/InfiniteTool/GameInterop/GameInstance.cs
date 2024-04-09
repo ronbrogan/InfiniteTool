@@ -243,6 +243,52 @@ namespace InfiniteTool.GameInterop
             });
         }
 
+        public void SpawnVehicle(TagInfo vehicle)
+        {
+            // Our func takes these 'global' tag IDs, but will only succeed if they're
+            // available in the 'tag translation table' (as I'm calling it)
+            // Need to scan this table and build up a list of available weapons to create
+            // Also need to figure out how variants really work :)
+            // ObjectGetVariant[228] Object->StringId      00aa553c // 00aa54fc
+            // object_set_variant[236] Object,StringId->Void   00f17524 // 00aa6f00
+
+            var name = Path.GetFileNameWithoutExtension(vehicle.Name);
+
+            Operation($"Vehicle Requested: {name}", () =>
+            {
+                var player = Engine.player_get(0);
+                var created = Engine.Object_PlaceTagAtObjectLocation(vehicle.Id, player);
+
+                if ((int)created == -1)
+                    ShowMessage("failed to spawn vehi");
+                else
+                    ShowMessage($"   spawned {name}");
+            });
+        }
+
+        public void SpawnCharacter(TagInfo character)
+        {
+            // Our func takes these 'global' tag IDs, but will only succeed if they're
+            // available in the 'tag translation table' (as I'm calling it)
+            // Need to scan this table and build up a list of available weapons to create
+            // Also need to figure out how variants really work :)
+            // ObjectGetVariant[228] Object->StringId      00aa553c // 00aa54fc
+            // object_set_variant[236] Object,StringId->Void   00f17524 // 00aa6f00
+
+            var name = Path.GetFileNameWithoutExtension(character.Name);
+
+            Operation($"Character Requested: {name}", () =>
+            {
+                var player = Engine.player_get(0);
+                var created = Engine.Object_PlaceTagAtObjectLocation(character.Id, player);
+
+                if ((int)created == -1)
+                    ShowMessage("failed to spawn char");
+                else
+                    ShowMessage($"   spawned {name}");
+            });
+        }
+
         private int pauseState = 0;
         internal void TogglePause()
         {
@@ -270,6 +316,16 @@ namespace InfiniteTool.GameInterop
             {
                 await Task.Delay(1000);
                 Engine.ai_kill_all();
+            });
+        }
+
+        internal void ToggleSkull(string name, int id)
+        {
+            Operation($"Toggling skull {name}", async () =>
+            {
+                var en = this.Engine.is_skull_active(id);
+                this.Engine.skull_enable(id, !en);
+                ShowMessage($"   [{(!en ? "ON" : "OFF")}]");
             });
         }
 
@@ -646,6 +702,5 @@ namespace InfiniteTool.GameInterop
                 this.allocator.Reclaim(zero: true);
             }
         }
-
     }
 }

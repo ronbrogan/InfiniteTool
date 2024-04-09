@@ -10,7 +10,7 @@
         TransparencyLevelHint="AcrylicBlur"
         Background="Transparent"
         ExtendClientAreaToDecorationsHint="True"
-        Title="Infinite Tool" Height="325" Width="450"
+        Title="Infinite Tool" Height="450" Width="650"
         Icon="infinity.ico">
 
     <Window.Resources>
@@ -70,23 +70,71 @@
                         <Button x:Name="bindable_points" Content="Max Spartan Points" HorizontalAlignment="Center" Margin="3" Click="points_Click"/>
                         
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                            <ComboBox Width="250" ItemsSource="{Binding Weapons}" SelectedItem="{Binding SelectedWeapon}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <AutoCompleteBox Width="350" 
+											 VerticalAlignment="Center"
+											 Watermark="Search for weapon tag"
+											 ItemsSource="{Binding Weapons}" 
+											 SelectedItem="{Binding SelectedWeapon}"
+											 FilterMode="ContainsOrdinal"
+											 MinimumPrefixLength="0">
+								<AutoCompleteBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Name}" />
+									</DataTemplate>
+								</AutoCompleteBox.ItemTemplate>
+                            </AutoCompleteBox>
                             <Button x:Name="bindable_weap" Content="Spawn Weapon" HorizontalAlignment="Center" Margin="3" Click="weapon_Click"/>
-                            
                         </StackPanel>
-                        
-                        
-
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+							<AutoCompleteBox Width="350"
+											 VerticalAlignment="Center"
+											 Watermark="Search for vehicle tag"
+											 ItemsSource="{Binding Vehicles}"
+											 SelectedItem="{Binding SelectedVehicle}"
+											 FilterMode="ContainsOrdinal"
+											 MinimumPrefixLength="0">
+								<AutoCompleteBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Name}" />
+									</DataTemplate>
+								</AutoCompleteBox.ItemTemplate>
+							</AutoCompleteBox>
+							<Button x:Name="bindable_vehi" Content="Spawn Vehicle" HorizontalAlignment="Center" Margin="3" Click="vehicle_Click"/>
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
+							<AutoCompleteBox Width="350"
+											 VerticalAlignment="Center"
+											 Watermark="Search for weapon tag"
+											 ItemsSource="{Binding Characters}"
+											 SelectedItem="{Binding SelectedCharacter}"
+											 FilterMode="ContainsOrdinal"
+											 MinimumPrefixLength="0">
+								<AutoCompleteBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Name}" />
+									</DataTemplate>
+								</AutoCompleteBox.ItemTemplate>
+							</AutoCompleteBox>
+							<Button x:Name="bindable_char" Content="Spawn Character" HorizontalAlignment="Center" Margin="3" Click="character_Click"/>
+						</StackPanel>
                     </StackPanel>
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Progression Data" IsVisible="false">
+			<TabItem Header="Skulls">
+				<ScrollViewer>
+				    <ItemsRepeater ItemsSource="{Binding Skulls}">
+					    <ItemsRepeater.ItemTemplate>
+						    <DataTemplate>
+							    <StackPanel Orientation="Horizontal">
+							        <Label Content="{Binding Name}"></Label>
+							        <Button Content="Toggle" Command="{Binding ToggleSkull}" CommandParameter="{Binding Id}"/>
+							    </StackPanel>
+						    </DataTemplate>
+					    </ItemsRepeater.ItemTemplate>
+				    </ItemsRepeater>
+				</ScrollViewer>
+			</TabItem>
+            <TabItem Header="Progression Data">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
@@ -99,14 +147,9 @@
                         </StackPanel>
 
                     </DockPanel>
-                    <DataGrid IsReadOnly="true" AutoGenerateColumns="false" ItemsSource="{Binding Path=PersistenceEntries}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Type" Binding="{Binding DataType}" Width="50"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Key Name" Binding="{Binding KeyName}" Width="250"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Global Value" Binding="{Binding GlobalValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Participant Value" Binding="{Binding ParticipantValue, Converter={StaticResource HexValConverter}}"></DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
+                    <TreeDataGrid Source="{Binding Path=PersistenceEntriesSource}">
+
+                    </TreeDataGrid>
                 </DockPanel>
             </TabItem>
             <TabItem Header="REPL" IsVisible="false">

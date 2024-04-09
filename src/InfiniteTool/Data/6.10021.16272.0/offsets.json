@@ -17,7 +17,6 @@
 
   "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
   "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
-  "Persistence_TryCreateKeyFromString": "0xc321d4",
   "Persistence_SetLongKey": "0xddf390",
   "Persistence_SetByteKey": "0x008aef24",
   "Persistence_SetBoolKey": "0x00e06238",
@@ -35,5 +34,8 @@
 
   "GetMessageBuffer": "0x13bf710",
   "GetMessageBufferSlot": "0x13bee30",
-  "ShowMessage": "0x13c1ef0"
+  "ShowMessage": "0x13c1ef0",
+
+  "skull_enable": "0x02a976ac",
+  "is_skull_active": "0x005aaef0"
 }

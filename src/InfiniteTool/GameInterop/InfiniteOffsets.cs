@@ -88,6 +88,12 @@ namespace InfiniteTool
 
         [ParamNames("buffer", "bufferSlot", "duration", "stringPointerUtf16")]
         public FunVoid<int, nint, float, nint> ShowMessage { get; set; }
+
+        [ParamNames("skullId", "enable")]
+        public FunVoid<int, bool> skull_enable { get; set; }
+
+        [ParamNames("skullId")]
+        public Fun<int, bool> is_skull_active { get; set; }
     }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 }

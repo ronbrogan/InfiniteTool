@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Platform.Storage;
 using InfiniteTool.Formats;
 using InfiniteTool.GameInterop;
@@ -14,6 +15,15 @@ using static InfiniteTool.GameInterop.GamePersistence;
 namespace InfiniteTool
 {
     [AddINotifyPropertyChangedInterface]
+    public record SkullInfo(GameContext Context, string Name, int Id)
+    {
+        public void ToggleSkull()
+        {
+            Context.Instance.ToggleSkull(this.Name, this.Id);
+        }
+    }
+
+    [AddINotifyPropertyChangedInterface]
     public class GameContext
     {
         private readonly ILogger<GameContext> logger;
@@ -22,11 +32,18 @@ namespace InfiniteTool
         public GamePersistence Persistence { get; private set; }
 
         public ObservableCollection<TagInfo> Weapons { get; }
+        public ObservableCollection<TagInfo> Vehicles { get; }
+        public ObservableCollection<TagInfo> Characters { get; }
 
 
         public ObservableCollection<ProgressionEntry> PersistenceEntries { get; } = new();
+        public FlatTreeDataGridSource<ProgressionEntry> PersistenceEntriesSource { get; }
 
         public TagInfo SelectedWeapon { get; set; }
+        public TagInfo SelectedVehicle { get; set; }
+        public TagInfo SelectedCharacter { get; set; }
+
+        public ObservableCollection<SkullInfo> Skulls { get; set; }
 
         public GameContext(GameInstance instance, GamePersistence progression, ILogger<GameContext> logger)
         {
@@ -34,12 +51,37 @@ namespace InfiniteTool
             this.Persistence = progression;
             this.logger = logger;
 
-            var weapTags = Tags.LoadWeaponTags();
-            this.Weapons = new ObservableCollection<TagInfo>(weapTags.Weapons);
-            foreach(var w in weapTags.WeaponConfigs)
-                this.Weapons.Add(w);
+            var tags = Tags.LoadTags();
+            this.Weapons = new ObservableCollection<TagInfo>(tags.Weapons);
+            this.Vehicles = new ObservableCollection<TagInfo>(tags.Vehicles);
+            this.Characters = new ObservableCollection<TagInfo>(tags.Characters);
 
+            PersistenceEntriesSource = new FlatTreeDataGridSource<ProgressionEntry>(this.PersistenceEntries)
+            {
+                Columns =
+                {
+                    new TextColumn<ProgressionEntry, string>("Type", e => e.DataType),
+                    new TextColumn<ProgressionEntry, string>("Key Name", e => e.KeyName),
+                    new TextColumn<ProgressionEntry, string>("Global Value", e => e.GlobalValueString),
+                    new TextColumn<ProgressionEntry, string>("User Value", e => e.ParticipantValueString),
+                }
+            };
 
+            Skulls = new()
+            {
+                new (this, "Black Eye", 0),
+                new (this, "Catch", 1),
+                new (this, "Fog", 2),
+                new (this, "Famine", 3),
+                new (this, "Thunderstorm", 4),
+                new (this, "Mythic", 5),
+                new (this, "Blind", 6),
+                new (this, "Boom", 7),
+                new (this, "Cowbell", 8),
+                new (this, "Grunt Birthday Party", 9),
+                new (this, "IWHBYD", 10),
+                new (this, "Bandana", 11)
+            };
         }
 
         public void RefreshPersistence()

@@ -34,6 +34,8 @@ namespace InfiniteTool
             this.PointerMoved += InputElement_OnPointerMoved;
             this.PointerPressed += InputElement_OnPointerPressed;
             this.PointerReleased += InputElement_OnPointerReleased;
+
+            
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -88,6 +90,27 @@ namespace InfiniteTool
                 return;
 
             this.Game.Instance.SpawnWeapon(this.Game.SelectedWeapon);
+        }
+
+        private void vehicle_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.Game.SelectedVehicle == null)
+                return;
+
+            this.Game.Instance.SpawnVehicle(this.Game.SelectedVehicle);
+        }
+
+        private void character_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.Game.SelectedCharacter == null)
+                return;
+
+            this.Game.Instance.SpawnCharacter(this.Game.SelectedCharacter);
+        }
+
+        private void skull_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void refreshPersistence_Click(object sender, RoutedEventArgs e)
@@ -367,6 +390,8 @@ namespace InfiniteTool
         private void InputElement_OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (e.Source is not Border b) return;
+
+            if (b.Parent is not Menu) return;
 
             if (WindowState == WindowState.Maximized || WindowState == WindowState.FullScreen) return;
 

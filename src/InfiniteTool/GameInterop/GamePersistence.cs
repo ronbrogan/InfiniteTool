@@ -305,6 +305,9 @@ namespace InfiniteTool.GameInterop
             public uint GlobalValue { get; set; }
 
             public uint ParticipantValue { get; set; }
+
+            public string GlobalValueString => GlobalValue.ToString("X16");
+            public string ParticipantValueString => GlobalValue.ToString("X16");
         }
     }
 }

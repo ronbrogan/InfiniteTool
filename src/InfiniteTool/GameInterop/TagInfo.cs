@@ -8,12 +8,20 @@ namespace InfiniteTool.GameInterop
     {
         public List<TagInfo> Weapons { get; set; }
         public List<TagInfo> WeaponConfigs { get; set; }
+        public List<TagInfo> Vehicles { get; set; }
+        public List<TagInfo> Characters { get; set; }
 
-        public static Tags LoadWeaponTags()
+        public static Tags LoadTags()
         {
-            return JsonSerializer.Deserialize<Tags>(File.ReadAllText("Data/weapons.json"))!;
+            return JsonSerializer.Deserialize<Tags>(File.ReadAllText("Data/tags.json"))!;
         }
     }
 
-    public record TagInfo(string Type, string Name, uint Id);
+    public record TagInfo(string Type, string Name, uint Id)
+    {
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
 }
