@@ -277,12 +277,10 @@ namespace InfiniteTool.GameInterop
                 //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrideForParticipant, 0x0, DiscardList(), participantId, longKeys);
 
                 // Set new values
-                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeys, 0x0, globalBoolResults, boolKeys, globalBools);
-                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeys, 0x0, globalByteResults, byteKeys, globalBytes);
-                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeys, 0x0, globalLongResults, longKeys, globalLongs);
-                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetBoolKeysForParticipant, 0x0, participantBoolResults, participantId, boolKeys, participantBools);
-                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetByteKeysForParticipant, 0x0, participantByteResults, participantId, byteKeys, participantBytes);
-                //process.CallFunction<nint>(this.offsets.Persistence_BatchSetLongKeysForParticipant, 0x0, participantLongResults, participantId, longKeys, participantLongs);
+                engine.Persistence_BatchSetBoolKeys(0, globalBoolResults, boolKeys, globalBools);
+                engine.Persistence_BatchSetByteKeys(0, globalByteResults, byteKeys, globalBytes);
+                engine.Persistence_BatchSetLongKeys(0, globalLongResults, longKeys, globalLongs);
+
 
                 allocator.Reclaim(zero: true);
             }

@@ -7,8 +7,10 @@ using InfiniteTool.Keybinds;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace InfiniteTool
@@ -22,11 +24,11 @@ namespace InfiniteTool
 
         public GameContext Game { get; set; }
 
-        public MainWindow(GameContext context, ILogger<MainWindow> logger)
+        public MainWindow(GameContext context, Hotkeys hotkeys, ILogger<MainWindow> logger)
         {
             InitializeComponent();
             this.Game = context;
-            this.Hotkeys = new Hotkeys(logger);
+            this.Hotkeys = hotkeys;
             this.DataContext = context;
             this.logger = logger;
             this.Loaded += MainWindow_Loaded;
@@ -34,39 +36,11 @@ namespace InfiniteTool
             this.PointerMoved += InputElement_OnPointerMoved;
             this.PointerPressed += InputElement_OnPointerPressed;
             this.PointerReleased += InputElement_OnPointerReleased;
-
-            
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             KeyBinds.Initialize(this, Hotkeys);
-        }
-
-        private void cp_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.TriggerCheckpoint();
-        }
-
-        private void revert_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.TriggerRevert();
-        }
-       
-
-        private void suppressCp_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.ToggleCheckpointSuppression();
-        }
-
-        private void doubleRevert_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.DoubleRevert();
-        }
-
-        private void invulnToggle_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.ToggleInvuln();
         }
 
         private void points_Click(object sender, RoutedEventArgs e)
@@ -108,37 +82,9 @@ namespace InfiniteTool
             this.Game.Instance.SpawnBiped(this.Game.SelectedBiped);
         }
 
-        private void skull_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void refreshPersistence_Click(object sender, RoutedEventArgs e)
         {
             this.Game.RefreshPersistence();
-        }
-
-        private void stopTime_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.TogglePause();
-        }
-
-        private void suspendAi_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.ToggleAi();
-        }
-
-        private void nukeAi_Click(object sender, RoutedEventArgs e)
-        {
-            this.Game.Instance.NukeAi();
-        }
-
-        private void coordsToggle_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void flycamToggle_Click(object sender, RoutedEventArgs e)
-        {
         }
 
         private async void saveProgression_Click(object sender, RoutedEventArgs e)
@@ -146,9 +92,9 @@ namespace InfiniteTool
             await this.Game.SavePersistence(this);
         }
 
-        private void restock_Click(object sender, RoutedEventArgs e)
+        private async void loadProgression_Click(object sender, RoutedEventArgs e)
         {
-            this.Game.Instance.RestockPlayer();
+            await this.Game.LoadPersistence(this);
         }
 
         private void aboutMenu_Click(object sender, RoutedEventArgs e)

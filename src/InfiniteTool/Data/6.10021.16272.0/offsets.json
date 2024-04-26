@@ -14,12 +14,17 @@
   "Object_PlaceTagAtObjectLocation": "0x02b0ab08",
   "object_set_shield": "0x293a7a8",
   "Object_SetObjectCannotTakeDamage": "0x2af6f38",
+  "Object_GetObjectCannotTakeDamage": "0x02af63c4",
 
   "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
   "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
   "Persistence_SetLongKey": "0xddf390",
   "Persistence_SetByteKey": "0x008aef24",
   "Persistence_SetBoolKey": "0x00e06238",
+  "Persistence_BatchSetBoolKeys": "0x01bc6290",
+  "Persistence_BatchSetByteKeys": "0x01bc6250",
+  "Persistence_BatchSetLongKeys": "0x01bc66f0",
+
   "Persistence_BatchGetBoolKeys": "0x1bc6c30",
   "Persistence_BatchGetByteKeys": "0x1bc6d80",
   "Persistence_BatchGetLongKeys": "0x1bc6810",
@@ -37,5 +42,7 @@
   "ShowMessage": "0x13c1ef0",
 
   "skull_enable": "0x02a976ac",
-  "is_skull_active": "0x005aaef0"
+  "is_skull_active": "0x005aaef0",
+
+  "composer_debug_cinematic_skip": "0x028d00c4"
 }

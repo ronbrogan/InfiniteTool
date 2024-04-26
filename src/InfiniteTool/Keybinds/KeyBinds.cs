@@ -2,6 +2,7 @@
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using PropertyChanged;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,18 +30,39 @@ namespace InfiniteTool.Keybinds
 
             foreach (var bindable in bindables)
             {
-                bindable.Tag = new BindableInfo(bindable.Content as string, hotkeys, bindings);
+                if (bindable.Tag is BindableInfo) continue; // already setup
+                
+                var info = new BindableInfo(bindable.Content as string, () => bindable.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)), hotkeys, bindings);
+                bindable.Tag = info;
                 bindable.ContextMenu = ctxMenu;
                 ToolTip.SetTip(bindable, "Right click for binding options");
             
                 if (bindings.TryGetValue(bindable.Name.Substring("bindable_".Length), out var binding))
                 {
-                    if (hotkeys.TryRegisterHotKey(binding.mods | ModifierKeys.NoRepeat, binding.key, () => bindable.RaiseEvent(new RoutedEventArgs(Button.ClickEvent))))
+                    if (hotkeys.TryRegisterHotKey(binding.mods | ModifierKeys.NoRepeat, binding.key, info.Action))
                     {
                         bindable.Content = bindable.Content + " <" + Hotkeys.KeyToString(binding.mods, binding.key) + ">";
                     }
                 }
             }
+        }
+
+        public static (ContextMenu, object?) SetupBinding(string label, string id, Action action, Hotkeys hotkeys)
+        {
+            LoadBindings();
+
+            var tag = new BindableInfo(label, action, hotkeys, bindings);
+            var ctx = BuildMenu();
+
+            if (bindings.TryGetValue(id.Substring("bindable_".Length), out var binding))
+            {
+                if (hotkeys.TryRegisterHotKey(binding.mods | ModifierKeys.NoRepeat, binding.key, action))
+                {
+                    tag.TextAndBinding = tag.Text + " <" + Hotkeys.KeyToString(binding.mods, binding.key) + ">";
+                }
+            }
+
+            return (ctx, tag);
         }
 
         private static ContextMenu BuildMenu()
@@ -70,7 +92,7 @@ namespace InfiniteTool.Keybinds
                 if (info.Bindings.TryGetValue(bindableName, out var binding))
                 {
                     info.Hotkeys.UnregisterHotKey(binding.mods, binding.key);
-                    bindable.Content = info.Text;
+                    info.TextAndBinding = info.Text;
                     info.Bindings.Remove(bindableName);
                     SaveBindings();
                 }
@@ -93,12 +115,12 @@ namespace InfiniteTool.Keybinds
                     if (info.Bindings.TryGetValue(bindableName, out var binding))
                     {
                         info.Hotkeys.UnregisterHotKey(binding.mods, binding.key);
-                        bindable.Content = info.Text;
+                        info.TextAndBinding = info.Text;
                     }
 
-                    if (info.Hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, () => bindable.RaiseEvent(new RoutedEventArgs(Button.ClickEvent))))
+                    if (info.Hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, info.Action))
                     {
-                        bindable.Content = info.Text + " <" + Hotkeys.KeyToString(dialog.Data.ModifierKeys, dialog.Data.MainKey) + ">";
+                        info.TextAndBinding = info.Text + " <" + Hotkeys.KeyToString(dialog.Data.ModifierKeys, dialog.Data.MainKey) + ">";
                         info.Bindings[bindableName] = (dialog.Data.ModifierKeys, dialog.Data.MainKey);
                         SaveBindings();
                     }
@@ -123,22 +145,30 @@ namespace InfiniteTool.Keybinds
             return cm.FindLogicalAncestorOfType<Button>();
         }
 
-        private class BindableInfo
+        [AddINotifyPropertyChangedInterface]
+        public class BindableInfo
         {
-            public BindableInfo(string? content, Hotkeys hotkeys, Dictionary<string, (ModifierKeys mods, Key key)> bindings)
+            public BindableInfo(string? content, Action action, Hotkeys hotkeys, Dictionary<string, (ModifierKeys mods, Key key)> bindings)
             {
-                this.Text = content;
+                this.Text = this.TextAndBinding = content;
+                this.Action = action;
                 this.Hotkeys = hotkeys;
                 this.Bindings = bindings;
             }
 
             public string? Text { get; set; }
+            public string TextAndBinding { get; set; }
+            public Action Action { get; }
             public Hotkeys Hotkeys { get; set; }
             public Dictionary<string, (ModifierKeys mods, Key key)> Bindings { get; set; }
+
+            public string Tooltip => "Right click for binding options";
         }
 
         private static void LoadBindings()
         {
+            if (bindings.Count > 0) return;
+
             try
             {
                 var lines = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, BindingConfigFile));

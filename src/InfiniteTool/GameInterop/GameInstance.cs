@@ -85,6 +85,7 @@ namespace InfiniteTool.GameInterop
             Operation("Reverting", () =>
             {
                 var player = Engine.player_get(0);
+                Engine.Object_SetObjectCannotTakeDamage(player, true);
                 Engine.object_set_shield(player, 1f);
                 Engine.game_revert();
             });
@@ -95,6 +96,7 @@ namespace InfiniteTool.GameInterop
             Operation("Double reverting", () =>
             {
                 var player = Engine.player_get(0);
+                Engine.Object_SetObjectCannotTakeDamage(player, true);
                 Engine.object_set_shield(player, 1f);
                 var cpInfo = Engine.ReadCheckpointInfo();
                 cpInfo.CurrentSlot ^= 1;
@@ -117,17 +119,28 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        private int invuln = 0;
+        internal bool CheckpointsSuppressed()
+        {
+            var cpInfo = Engine.ReadCheckpointInfo();
+            return cpInfo.SuppressCheckpoints == 1;
+        }
+
         internal void ToggleInvuln()
         {
             Operation("Toggling Invuln", () =>
             {
-                invuln ^= 1;
+                var invuln = PlayerIsInvulnerable() ? 0 : 1;
                 this.logger.LogInformation($"Invuln requested, val: {invuln}");
                 var player = Engine.player_get(0);
                 Engine.Object_SetObjectCannotTakeDamage(player, invuln == 1);
                 ShowMessage($" Invuln [{(invuln == 1 ? "ON" : "OFF")}]");
             });
+        }
+
+        internal bool PlayerIsInvulnerable()
+        {
+            var player = Engine.player_get(0);
+            return Engine.Object_GetObjectCannotTakeDamage(player);
         }
 
         public void RestockPlayer()
@@ -293,10 +306,15 @@ namespace InfiniteTool.GameInterop
         internal void TogglePause()
         {
             pauseState ^= 1;
-            Operation(pauseState == 1 ? "Freezing time" : "Thawing time", () =>
+            Operation(pauseState == 1 ? "Toggling freeze" : "Thawing time", () =>
             {
                 Engine.Game_TimeSetPaused(pauseState == 1);
             });
+        }
+
+        internal bool GameIsPaused()
+        {
+            return pauseState == 1;
         }
 
         private int aiState = 1;
@@ -310,11 +328,16 @@ namespace InfiniteTool.GameInterop
             });
         }
 
+        internal bool AiDisabled()
+        {
+            return aiState == 1;
+        }
+
         internal void NukeAi()
         {
             Operation("Dropping nuke", async () =>
             {
-                await Task.Delay(1000);
+                await Task.Delay(500);
                 Engine.ai_kill_all();
             });
         }
@@ -701,6 +724,11 @@ namespace InfiniteTool.GameInterop
             {                
                 this.allocator.Reclaim(zero: true);
             }
+        }
+
+        internal void ForceSkipCutscene()
+        {
+            Operation("Skipping CS", () => this.Engine.composer_debug_cinematic_skip(), "Skip cutscene requested");
         }
     }
 }

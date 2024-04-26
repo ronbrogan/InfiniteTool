@@ -40,6 +40,9 @@ namespace InfiniteTool
         [ParamNames("objectId", "value")]
         public FunVoid<nint, bool> Object_SetObjectCannotTakeDamage { get; set; }
 
+        [ParamNames("objectId")]
+        public Fun<nint, bool> Object_GetObjectCannotTakeDamage { get; set; }
+
         [ParamNames("zero", "resultAddress", "stringAddress")]
         public FunVoid<int, nint, nint> Persistence_TryCreateKeyFromString { get; set; }
 
@@ -79,6 +82,15 @@ namespace InfiniteTool
         [ParamNames("zero", "values", "keys")]
         public FunVoid<int, nint, nint> Persistence_BatchGetLongKeys { get; set; }
 
+        [ParamNames("zero", "values", "keys", "results")]
+        public FunVoid<int, nint, nint, nint> Persistence_BatchSetBoolKeys { get; set; }
+
+        [ParamNames("zero", "values", "keys", "results")]
+        public FunVoid<int, nint, nint, nint> Persistence_BatchSetByteKeys { get; set; }
+
+        [ParamNames("zero", "values", "keys", "results")]
+        public FunVoid<int, nint, nint, nint> Persistence_BatchSetLongKeys { get; set; }
+
 
         [ParamNames("playerId")]
         public Fun<int, nint> GetMessageBuffer { get; set; }
@@ -94,6 +106,8 @@ namespace InfiniteTool
 
         [ParamNames("skullId")]
         public Fun<int, bool> is_skull_active { get; set; }
+
+        public FunVoid composer_debug_cinematic_skip { get; set; }
     }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 }
