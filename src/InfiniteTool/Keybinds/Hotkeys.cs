@@ -82,10 +82,11 @@ namespace InfiniteTool
                 {
                     this.keyCallbacks.Add(identifier, () =>
                     {
-                        RemoveHotkey(identifier);
+                        // this runs on the message pump thread, so don't have to dispatch
+                        hotkeyInterop.UnregisterHotKey(0, identifier);
                         callback();
                         SendKeys(modifiers, key);
-                        AddHotkey(identifier, modifiers, key);
+                        hotkeyInterop.RegisterHotKey(0, identifier, modifiers, KeyInterop.VirtualKeyFromKey(key));
                     });
                     this.logger?.LogInformation("Registered binding: {key} with ID: {id}", KeyToString(modifiers, key), identifier);
                     return true;
