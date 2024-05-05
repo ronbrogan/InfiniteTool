@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31815.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfiniteTool", "InfiniteTool\InfiniteTool.csproj", "{DEAACE26-FD79-4BD3-8A4D-07AA3B2479CC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D607D04E-C0FF-4BE4-9CDE-92ECBF370C2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

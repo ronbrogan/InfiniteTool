@@ -1,4 +1,5 @@
-﻿using InfiniteTool.GameInterop.EngineDataTypes;
+﻿using DynamicData;
+using InfiniteTool.GameInterop.EngineDataTypes;
 using InfiniteTool.GameInterop.Internal;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
@@ -40,6 +41,8 @@ namespace InfiniteTool.GameInterop
 
         public void Bootstrap()
         {
+            this.NeedsReBootstrapped = false;
+
             if (this.allocator != null)
             {
                 try
@@ -60,7 +63,7 @@ namespace InfiniteTool.GameInterop
                 var keyList = allocator.AllocateList<nint>(persistenceKeys.Length);
                 var inList = allocator.AllocateList<nint>(persistenceKeys.Length);
                 inList.AddAsciiStrings(allocator, persistenceKeys);
-                inList.SyncTo();
+                inList.SyncTo();    
 
                 this.instance.PrepareForScriptCalls();
                 this.engine.Persistence_BatchTryCreateKeysFromStrings(0, keyList, inList);
@@ -72,6 +75,7 @@ namespace InfiniteTool.GameInterop
                 if (items != persistenceKeys.Length)
                 {
                     this.logger.LogWarning($"Mismatch of string to key results, sent {persistenceKeys.Length}, got back {items}");
+                    this.NeedsReBootstrapped = true;
                 }
 
                 stringToKeyMap.Clear();
@@ -88,7 +92,6 @@ namespace InfiniteTool.GameInterop
                     }
                     else
                     {
-                        this.logger.LogWarning($"Miss on string to key, sent '{persistenceKeys[i]}', got back {val:x16}");
                         this.NeedsReBootstrapped = true;
                     }
                 }
@@ -96,7 +99,7 @@ namespace InfiniteTool.GameInterop
                 allocator.Reclaim(zero: true);
 
                 this.allocator = allocator;
-                this.NeedsReBootstrapped = false;
+                
             }
             catch
             {
@@ -207,13 +210,57 @@ namespace InfiniteTool.GameInterop
             }
         }
 
+        private HashSet<string> keysToOverride = new HashSet<string>()
+        {
+            //"Loadout-FirstWeaponExists",
+            //"Loadout-FirstWeaponTag",
+            //"Loadout-FirstWeaponConfigTag",
+            //"Loadout-FirstWeaponVariant",
+            //"Loadout-FirstWeaponAmmoLoaded",
+            //"Loadout-FirstWeaponTotalAmmo",
+            //"Loadout-FirstWeaponAge",
+            //"Loadout-SecondWeaponExists",
+            //"Loadout-SecondWeaponTag",
+            //"Loadout-SecondWeaponConfigTag",
+            //"Loadout-SecondWeaponVariant",
+            //"Loadout-SecondWeaponAmmoLoaded",
+            //"Loadout-SecondWeaponTotalAmmo",
+            //"Loadout-SecondWeaponAge",
+            //"Loadout-ThirdWeaponExists",
+            //"Loadout-ThirdWeaponTag",
+            //"Loadout-ThirdWeaponConfigTag",
+            //"Loadout-ThirdWeaponVariant",
+            //"Loadout-ThirdWeaponAmmoLoaded",
+            //"Loadout-ThirdWeaponTotalAmmo",
+            //"Loadout-ThirdWeaponAge",
+            //"Loadout-FourthWeaponExists",
+            //"Loadout-FourthWeaponTag",
+            //"Loadout-FourthWeaponConfigTag",
+            //"Loadout-FourthWeaponVariant",
+            //"Loadout-FourthWeaponAmmoLoaded",
+            //"Loadout-FourthWeaponTotalAmmo",
+            //"Loadout-FourthWeaponAge",
+            //"Loadout-FirstGrenadeExists",
+            //"Loadout-FirstGrenadeType",
+            //"Loadout-FirstGrenadeCount",
+            //"Loadout-SecondGrenadeExists",
+            //"Loadout-SecondGrenadeType",
+            //"Loadout-SecondGrenadeCount",
+            //"Loadout-ThirdGrenadeExists",
+            //"Loadout-ThirdGrenadeType",
+            //"Loadout-ThirdGrenadeCount",
+            //"Loadout-FourthGrenadeExists",
+            //"Loadout-FourthGrenadeType",
+            //"Loadout-FourthGrenadeCount",
+        };
+
         public void SetProgress(List<ProgressionEntry> entries)
         {
             this.EnsureBoostrapped();
 
-            var boolSet = new List<(uint key, uint globalVal, uint participantVal)>();
-            var byteSet = new List<(uint key, uint globalVal, uint participantVal)>();
-            var longSet = new List<(uint key, uint globalVal, uint participantVal)>();
+            var boolSet = new List<(uint key, uint globalVal, uint participantVal, bool needsOverride)>();
+            var byteSet = new List<(uint key, uint globalVal, uint participantVal, bool needsOverride)>();
+            var longSet = new List<(uint key, uint globalVal, uint participantVal, bool needsOverride)>();
 
             foreach (var entry in entries)
             {
@@ -223,13 +270,13 @@ namespace InfiniteTool.GameInterop
                     switch (type)
                     {
                         case PersistenceValueType.Boolean:
-                            boolSet.Add((key, entry.GlobalValue, entry.ParticipantValue));
+                            boolSet.Add((key, entry.GlobalValue, entry.ParticipantValue, keysToOverride.Contains(entry.KeyName)));
                             break;
                         case PersistenceValueType.Byte:
-                            byteSet.Add((key, entry.GlobalValue, entry.ParticipantValue));
+                            byteSet.Add((key, entry.GlobalValue, entry.ParticipantValue, keysToOverride.Contains(entry.KeyName)));
                             break;
                         case PersistenceValueType.Long:
-                            longSet.Add((key, entry.GlobalValue, entry.ParticipantValue));
+                            longSet.Add((key, entry.GlobalValue, entry.ParticipantValue, keysToOverride.Contains(entry.KeyName)));
                             break;
                     }
                 }
@@ -243,6 +290,13 @@ namespace InfiniteTool.GameInterop
                 boolKeys.AddValues(boolSet.Select(b => b.key).ToArray());
                 byteKeys.AddValues(byteSet.Select(b => b.key).ToArray());
                 longKeys.AddValues(longSet.Select(b => b.key).ToArray());
+
+                var boolOverrideKeys = allocator.AllocateList<uint>(keysToOverride.Count);
+                var byteOverrideKeys = allocator.AllocateList<uint>(keysToOverride.Count);
+                var longOverrideKeys = allocator.AllocateList<uint>(keysToOverride.Count);
+                boolOverrideKeys.AddValues(boolSet.Where(b => b.needsOverride).Select(b => b.key).ToArray());
+                byteOverrideKeys.AddValues(byteSet.Where(b => b.needsOverride).Select(b => b.key).ToArray());
+                longOverrideKeys.AddValues(longSet.Where(b => b.needsOverride).Select(b => b.key).ToArray());
 
                 var globalBools = allocator.AllocateList<bit>(boolSet.Count);
                 var globalBytes = allocator.AllocateList<short>(byteSet.Count);
@@ -277,6 +331,15 @@ namespace InfiniteTool.GameInterop
                 //process.CallFunction<nint>(this.offsets.Persistence_BatchRemoveLongKeyOverrideForParticipant, 0x0, DiscardList(), participantId, longKeys);
 
                 // Set new values
+
+                //engine.Persistence_BatchOverrideBoolKeys(0, DiscardList(), boolOverrideKeys);
+                //engine.Persistence_BatchOverrideByteKeys(0, DiscardList(), byteOverrideKeys);
+                //engine.Persistence_BatchOverrideLongKeys(0, DiscardList(), longOverrideKeys);
+
+                engine.Persistence_BatchRemoveBoolKeyOverrides(0, DiscardList(), boolKeys);
+                engine.Persistence_BatchRemoveByteKeyOverrides(0, DiscardList(), byteKeys);
+                engine.Persistence_BatchRemoveLongKeyOverrides(0, DiscardList(), longKeys);
+
                 engine.Persistence_BatchSetBoolKeys(0, globalBoolResults, boolKeys, globalBools);
                 engine.Persistence_BatchSetByteKeys(0, globalByteResults, byteKeys, globalBytes);
                 engine.Persistence_BatchSetLongKeys(0, globalLongResults, longKeys, globalLongs);

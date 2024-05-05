@@ -19,6 +19,10 @@ namespace InfiniteTool.GameInterop
 
     public static class PersistenceKeys
     {
+        public const string CampfireMapId = "campfire_map_id";
+        public const string CampfireSpawnId = "campfire_spawn_id";
+
+
         public static string[] EquipmentKeys = new string[]
         {
             "schematic_evade",

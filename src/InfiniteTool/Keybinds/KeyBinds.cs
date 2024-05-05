@@ -1,81 +1,93 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
+using HarfBuzzSharp;
 using PropertyChanged;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace InfiniteTool.Keybinds
 {
+    public interface IBindableUiAction
+    {
+        string Id { get; set; }
+        string Label { get; set; }
+        string KeyBind { get; set; }
+
+        void Invoke();
+    }
+
+    [AddINotifyPropertyChangedInterface]
+    public abstract class BindableUiAction : IBindableUiAction
+    {
+        public string Id { get; set; }
+
+        public string Label { get; set; }
+        public string? KeyBind { get; set; }
+
+        [DependsOn(nameof(Label), nameof(KeyBind))]
+        public string LabelAndBinding => Label + (KeyBind == null ? "" : " <" + KeyBind + ">");
+
+        public string Tooltip { get; set; } = "Right click for binding options";
+
+        public Func<bool> IsEnabled { get; set; }
+
+        public abstract void Invoke();
+
+        public ContextMenu BindingContextMenu { get; set; }
+    }
+
     public static class KeyBinds
     {
         private const string BindingConfigFile = "keybinds.cfg";
 
         private static Dictionary<string, (ModifierKeys mods, Key key)> bindings = new();
 
+        private static Hotkeys hotkeys = new();
+        private static Window window;
 
-        public static void Initialize(Window window, Hotkeys hotkeys)
+        static KeyBinds()
         {
             LoadBindings();
+        }
 
-            var bindables = window.GetSelfAndLogicalDescendants()
-                .OfType<Button>()
-                .Where(b => b.Name != null && b.Name.StartsWith("bindable_"))
-                .ToHashSet();
+        public static void Initialize(Window window)
+        {
+            KeyBinds.window = window;
+        }
 
-            var ctxMenu = BuildMenu();
-
-            foreach (var bindable in bindables)
+        public static void SetupActions(IEnumerable<BindableUiAction> actions)
+        {
+            foreach(var action in actions)
             {
-                if (bindable.Tag is BindableInfo) continue; // already setup
-                
-                var info = new BindableInfo(bindable.Content as string, () => bindable.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)), hotkeys, bindings);
-                bindable.Tag = info;
-                bindable.ContextMenu = ctxMenu;
-                ToolTip.SetTip(bindable, "Right click for binding options");
-            
-                if (bindings.TryGetValue(bindable.Name.Substring("bindable_".Length), out var binding))
-                {
-                    if (hotkeys.TryRegisterHotKey(binding.mods | ModifierKeys.NoRepeat, binding.key, info.Action))
-                    {
-                        bindable.Content = bindable.Content + " <" + Hotkeys.KeyToString(binding.mods, binding.key) + ">";
-                    }
-                }
+                SetupAction(action);
             }
         }
 
-        public static (ContextMenu, object?) SetupBinding(string label, string id, Action action, Hotkeys hotkeys)
+        public static void SetupAction(BindableUiAction action)
         {
-            LoadBindings();
-
-            var tag = new BindableInfo(label, action, hotkeys, bindings);
-            var ctx = BuildMenu();
-
-            if (bindings.TryGetValue(id.Substring("bindable_".Length), out var binding))
+            if (bindings.TryGetValue(action.Id, out var binding))
             {
-                if (hotkeys.TryRegisterHotKey(binding.mods | ModifierKeys.NoRepeat, binding.key, action))
+                if (hotkeys.TryRegisterHotKey(binding.mods, binding.key, action.Invoke))
                 {
-                    tag.TextAndBinding = tag.Text + " <" + Hotkeys.KeyToString(binding.mods, binding.key) + ">";
+                    action.KeyBind = Hotkeys.KeyToString(binding.mods, binding.key);
                 }
             }
 
-            return (ctx, tag);
+            action.BindingContextMenu = BuildMenu(action);
         }
 
-        private static ContextMenu BuildMenu()
+        public static ContextMenu BuildMenu(IBindableUiAction action)
         {
             var menu = new ContextMenu();
             var unbind = new MenuItem() { Header = "Unbind" };
             var bind = new MenuItem() { Header = "Bind" };
 
-            bind.CommandParameter = menu;
-            bind.Click += Bind_OnClick;
+            bind.CommandParameter = action;
+            bind.Command = ReactiveUI.ReactiveCommand.Create<IBindableUiAction>(Bind_OnClick);
 
-            unbind.CommandParameter = menu;
-            unbind.Click += Unbind_OnClick;
+            unbind.CommandParameter = action;
+            unbind.Command = ReactiveUI.ReactiveCommand.Create<IBindableUiAction>(Unbind_OnClick);
 
             menu.Items.Add(bind);
             menu.Items.Add(unbind);
@@ -83,86 +95,42 @@ namespace InfiniteTool.Keybinds
             return menu;
         }
 
-        private static void Unbind_OnClick(object? sender, RoutedEventArgs e)
+        private static void Unbind_OnClick(IBindableUiAction action)
         {
-            var bindable = FindClickedItem(sender);
-            if (bindable != null && bindable.Tag is BindableInfo info)
+            if (action == null) return;
+            
+            if (bindings.TryGetValue(action.Id, out var binding))
             {
-                var bindableName = bindable.Name.Substring("bindable_".Length);
-                if (info.Bindings.TryGetValue(bindableName, out var binding))
+                hotkeys.UnregisterHotKey(binding.mods, binding.key);
+                action.KeyBind = null;
+                bindings.Remove(action.Id);
+                SaveBindings();
+            }
+        }
+
+        private static async void Bind_OnClick(IBindableUiAction action)
+        {
+            if (action == null) return;
+
+            var dialog = new KeyBindDialog();
+            await dialog.ShowDialog(window);
+
+            if (dialog.DialogResult && dialog.Data.MainKey != Key.None)
+            {
+                if (bindings.TryGetValue(action.Id, out var binding))
                 {
-                    info.Hotkeys.UnregisterHotKey(binding.mods, binding.key);
-                    info.TextAndBinding = info.Text;
-                    info.Bindings.Remove(bindableName);
+                    hotkeys.UnregisterHotKey(binding.mods, binding.key);
+                    action.KeyBind = null;
+                }
+
+                if (hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, action.Invoke))
+                {
+                    action.KeyBind = Hotkeys.KeyToString(dialog.Data.ModifierKeys, dialog.Data.MainKey);
+                    bindings[action.Id] = (dialog.Data.ModifierKeys, dialog.Data.MainKey);
                     SaveBindings();
                 }
             }
-        }
-
-        private static async void Bind_OnClick(object? sender, RoutedEventArgs e)
-        {
-            var bindable = FindClickedItem(sender);
-            if (bindable != null && bindable.Tag is BindableInfo info)
-            {
-                // do something to get new binding
-                var dialog = new KeyBindDialog();
-
-                await dialog.ShowDialog((Window)TopLevel.GetTopLevel(bindable));
-
-                if (dialog.DialogResult && dialog.Data.MainKey != Key.None)
-                {
-                    var bindableName = bindable.Name.Substring("bindable_".Length);
-                    if (info.Bindings.TryGetValue(bindableName, out var binding))
-                    {
-                        info.Hotkeys.UnregisterHotKey(binding.mods, binding.key);
-                        info.TextAndBinding = info.Text;
-                    }
-
-                    if (info.Hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, info.Action))
-                    {
-                        info.TextAndBinding = info.Text + " <" + Hotkeys.KeyToString(dialog.Data.ModifierKeys, dialog.Data.MainKey) + ">";
-                        info.Bindings[bindableName] = (dialog.Data.ModifierKeys, dialog.Data.MainKey);
-                        SaveBindings();
-                    }
-                }
-            }
-        }
-
-        private static Button? FindClickedItem(object sender)
-        {
-            var mi = sender as MenuItem;
-            if (mi == null)
-            {
-                return null;
-            }
-
-            var cm = mi.CommandParameter as ContextMenu;
-            if (cm == null)
-            {
-                return null;
-            }
-
-            return cm.FindLogicalAncestorOfType<Button>();
-        }
-
-        [AddINotifyPropertyChangedInterface]
-        public class BindableInfo
-        {
-            public BindableInfo(string? content, Action action, Hotkeys hotkeys, Dictionary<string, (ModifierKeys mods, Key key)> bindings)
-            {
-                this.Text = this.TextAndBinding = content;
-                this.Action = action;
-                this.Hotkeys = hotkeys;
-                this.Bindings = bindings;
-            }
-
-            public string? Text { get; set; }
-            public string TextAndBinding { get; set; }
-            public Action Action { get; }
-            public Hotkeys Hotkeys { get; set; }
-            public Dictionary<string, (ModifierKeys mods, Key key)> Bindings { get; set; }
-
-            public string Tooltip => "Right click for binding options";
+            
         }
 
         private static void LoadBindings()

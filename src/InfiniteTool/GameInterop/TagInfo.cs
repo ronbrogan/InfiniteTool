@@ -14,7 +14,7 @@ namespace InfiniteTool.GameInterop
 
         public static Tags LoadTags()
         {
-            return JsonSerializer.Deserialize<Tags>(File.ReadAllText("Data/tags.json"))!;
+            return JsonSerializer.Deserialize<Tags>(File.ReadAllText("Data/tags.json"), SourceGenerationContext.Default.Tags)!;
         }
     }
 

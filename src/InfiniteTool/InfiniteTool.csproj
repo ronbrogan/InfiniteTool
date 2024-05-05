@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationIcon>infinity.ico</ApplicationIcon>
-		<Version>1.0.0-preview1</Version>
+		<Version>1.0.0-preview3</Version>
 		<Platforms>x64</Platforms>
 	</PropertyGroup>
 
@@ -29,26 +29,25 @@
 		<PackageReference Include="Avalonia.Themes.Simple" Version="11.0.10" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
 		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.10" />
-		
-		<PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.2">
+		<PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Iced" Version="1.21.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta">
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
-		<PackageReference Include="Serilog" Version="2.10.0" />
-		<PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />
+		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
+		<PackageReference Include="Serilog" Version="3.1.1" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
 		<PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-		<PackageReference Include="Superintendent.Core" Version="1.0.0-preview1" />
-		<PackageReference Include="Superintendent.Generation" Version="1.0.0-preview1" />
+		<PackageReference Include="Superintendent.Core" Version="1.0.0" />
+		<PackageReference Include="Superintendent.Generation" Version="1.0.0" />
 	</ItemGroup>
 
 

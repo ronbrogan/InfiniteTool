@@ -117,6 +117,7 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 
 		public void AddValue(T value)
 		{
+			this.count++;
 			// TODO: bit handling
 			proc.WriteSpanAt<byte>(this.tail, new Span<byte>(&value, sizeof(T)));
 			this.tail += sizeof(T);
@@ -136,7 +137,7 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 
 				bytes = new byte[(int)Math.Ceiling(values.Length / 8f)];
 
-				for (var i = 0; i < count; i++)
+				for (var i = 0; i < values.Length; i++)
 				{
 					var bit = (bit)(object)values[i];
 
@@ -149,8 +150,9 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 				bytes = MemoryMarshal.AsBytes(values);
 			}
 
+			this.count += values.Length;
 			proc.WriteSpanAt<byte>(this.tail, bytes);
-			this.tail += sizeof(T) * values.Length;
+			this.tail += bytes.Length;
 			this.SyncTo();
 		}
 
@@ -183,7 +185,9 @@ namespace InfiniteTool.GameInterop.EngineDataTypes
 			proc.WriteAt(this.location + sizeof(nint), this.tail);
 
 			proc.WriteAt(this.location + sizeof(nint) + sizeof(nint), this.end);
-		}
+
+            proc.WriteAt(this.location + sizeof(nint) + sizeof(nint) + sizeof(nint), this.count);
+        }
 
 		public static implicit operator nint(BlamEngineList<T> list) => list.Address;
 	}

@@ -75,6 +75,58 @@ namespace InfiniteTool.GameInterop
             this.RemoteProcess = new RpcRemoteProcess();
         }
 
+        public bool ProbablyIsInGame()
+        {
+            try
+            {
+                if (!Engine.IsInCampaignMenu())
+                    return false;
+
+                if (Engine.LoadScreenActive())
+                    return false;
+
+                if (Engine.Level_IsCurrentNameEqual(this.RemoteProcess.GetBaseOffset() + this.offsets.MainMenuScenarioName))
+                    return false;
+            }
+            catch { return false; }
+
+            return true;
+        }
+
+        public bool InCutscene()
+        {
+            try
+            {
+                if (!Engine.IsInCampaignMenu())
+                    return false;
+
+                if (Engine.LoadScreenActive())
+                    return false;
+
+                if (Engine.composer_show_scene_is_playing())
+                    return true;
+
+                if (Engine.cinematic_in_progress())
+                    return true;
+            }
+            catch { return false; }
+
+            return false;
+        }
+
+        public bool IsPaused()
+        {
+            try
+            {
+                this.RemoteProcess.ReadAt<GameTimeGlobals>(Engine.GetGameTimeGlobalsAddress(), out var timeGlobals);
+
+                return timeGlobals.Suspended != 0;
+            }
+            catch { }
+
+            return false;
+        }
+
         internal void TriggerCheckpoint()
         {
             Operation("Custom Checkpoint", () => Engine.game_save_fast());
@@ -165,10 +217,10 @@ namespace InfiniteTool.GameInterop
 
                 var valAddr = this.allocator.Allocate(1);
 
-                RemoteProcess.WriteAt(valAddr, (byte)1);
+                RemoteProcess.WriteAt(valAddr, (byte)255);
                 UnlockEquipment(stringAddr, resultAddr, valAddr);
 
-                RemoteProcess.WriteAt(valAddr, (byte)1);
+                RemoteProcess.WriteAt(valAddr, (byte)255);
                 NoticeDeadSpartans(stringAddr, resultAddr, valAddr);
                     
             });
@@ -302,26 +354,25 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        private int pauseState = 0;
-        internal void TogglePause()
+        internal void ToggleGameTimePause()
         {
-            pauseState ^= 1;
-            Operation(pauseState == 1 ? "Toggling freeze" : "Thawing time", () =>
+            var pauseState = GameTimeIsPaused();
+            Operation(!pauseState ? "Freezing time" : "Thawing time", () =>
             {
-                Engine.Game_TimeSetPaused(pauseState == 1);
+                Engine.Game_TimeSetPaused(!pauseState);
             });
         }
 
-        internal bool GameIsPaused()
+        internal bool GameTimeIsPaused()
         {
-            return pauseState == 1;
+            this.RemoteProcess.ReadAt<GameTimeGlobals>(Engine.GetGameTimeGlobalsAddress(), out var timeGlobals);
+
+            return timeGlobals.Suspended == 0x0040;
         }
 
-        private int aiState = 1;
         internal void ToggleAi()
         {
-            aiState ^= 1;
-            var enable = aiState == 1;
+            var enable = AiDisabled();
             Operation(enable ? "AI enabled" : "AI disabled", () =>
             {
                 Engine.ai_enable(enable);
@@ -330,7 +381,7 @@ namespace InfiniteTool.GameInterop
 
         internal bool AiDisabled()
         {
-            return aiState == 1;
+            return !Engine.ai_enabled();
         }
 
         internal void NukeAi()
@@ -350,6 +401,11 @@ namespace InfiniteTool.GameInterop
                 this.Engine.skull_enable(id, !en);
                 ShowMessage($"   [{(!en ? "ON" : "OFF")}]");
             });
+        }
+
+        internal bool GetSkullState(int id)
+        {
+            return Engine.is_skull_active(id);
         }
 
         public void ShowMessage(string message)
@@ -432,6 +488,7 @@ namespace InfiniteTool.GameInterop
 
         private void RemoteProcess_ProcessDetached(object? sender, EventArgs e)
         {
+            this.BeforeDetach?.Invoke(this, new EventArgs());
             logger.LogInformation("Detaching from process {PID}", this.ProcessId);
             this.ProcessId = 0;
             this.RevertFlagOffset = 0;
@@ -729,6 +786,74 @@ namespace InfiniteTool.GameInterop
         internal void ForceSkipCutscene()
         {
             Operation("Skipping CS", () => this.Engine.composer_debug_cinematic_skip(), "Skip cutscene requested");
+        }
+
+        internal void ResetOrLaunchMap(uint? loadedMapId, uint? loadedSpawnId)
+        {
+            if (!loadedMapId.HasValue || loadedMapId.Value <= 0)
+                return;
+
+            var state = Engine.ResolveGameStateStuff();
+            this.RemoteProcess.ReadAt<uint>(state + 0xe887c, out var curr);
+
+            if (curr == loadedMapId)
+            {
+                Engine.map_reset();
+            }
+            else
+            {
+                Engine.RestartMission();
+            }
+        }
+
+        internal void TogglePlayerNoClip()
+        {
+            var val = PlayerNoClip();
+            Operation($"Noclip [{(!val ? "ON" : "OFF")}]", () =>
+            {
+                var player = Engine.player_get(0);
+                Engine.object_set_physics(player, val);
+            });
+        }
+
+        internal bool PlayerNoClip()
+        {
+            var player = Engine.player_get(0);
+            var objAddr = Engine.ResolveObjectPointer(player);
+            this.RemoteProcess.ReadAt<nint>(objAddr + 0xf0, out var flags);
+            return (flags & 0x100) != 0;
+        }
+
+        internal void ToggleSlowMo()
+        {
+            var val = SlowMoActivated();
+            Operation($"SlowMo [{(!val ? "ON" : "OFF")}]", () =>
+            {
+                var addr = Engine.GetGameTimeGlobalsAddress();
+                this.RemoteProcess.WriteAt<float>(addr + GameTimeGlobals.TickRateReciprocalOffset, val ? 1f/60f : 1f / 120f);
+            });
+        }
+
+        internal bool SlowMoActivated()
+        {
+            this.RemoteProcess.ReadAt<GameTimeGlobals>(Engine.GetGameTimeGlobalsAddress(), out var timeGlobals);
+            return timeGlobals.TickRateReciprocal < 0.016f;
+        }
+
+        internal void ToggleFastMo()
+        {
+            var val = FastMoActivated();
+            Operation($"FastMo [{(!val ? "ON" : "OFF")}]", () =>
+            {
+                var addr = Engine.GetGameTimeGlobalsAddress();
+                this.RemoteProcess.WriteAt<float>(addr + GameTimeGlobals.GameTimeMultiplierOffset, val ? 1 : 3);
+            });
+        }
+
+        internal bool FastMoActivated()
+        {
+            this.RemoteProcess.ReadAt<GameTimeGlobals>(Engine.GetGameTimeGlobalsAddress(), out var timeGlobals);
+            return timeGlobals.GameTimeMultiplier > 1;
         }
     }
 }

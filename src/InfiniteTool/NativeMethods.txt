@@ -5,3 +5,4 @@ GetMessage
 PeekMessage
 PostThreadMessage
 GetCurrentThreadId
+SendInput

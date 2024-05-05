@@ -1,17 +1,20 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Win32.Input;
+using DynamicData;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace InfiniteTool
@@ -70,18 +73,20 @@ namespace InfiniteTool
 
             if (this.registeredKeys.TryAdd((modifiers, key), identifier))
             {
-                var mre = new ManualResetEventSlim();
-                operations.TryAdd(identifier, (mre, false));
+                // don't support holding down hotkeys for repeated actions!
+                modifiers |= ModifierKeys.NoRepeat;
 
-                var lp = (nint)modifiers << 32 | KeyInterop.VirtualKeyFromKey(key);
-                PInvoke.PostThreadMessage(workThreadId, WmRegisterHotKey, new WPARAM((nuint)identifier), new LPARAM(lp));
+                var result = AddHotkey(identifier, modifiers, key);
 
-                mre.Wait();
-                operations.TryRemove(identifier, out var result);
-
-                if (result.Item2)
+                if (result)
                 {
-                    this.keyCallbacks.Add(identifier, callback);
+                    this.keyCallbacks.Add(identifier, () =>
+                    {
+                        RemoveHotkey(identifier);
+                        callback();
+                        SendKeys(modifiers, key);
+                        AddHotkey(identifier, modifiers, key);
+                    });
                     this.logger?.LogInformation("Registered binding: {key} with ID: {id}", KeyToString(modifiers, key), identifier);
                     return true;
                 }
@@ -141,6 +146,80 @@ namespace InfiniteTool
             return builder.ToString();
         }
 
+
+        private bool AddHotkey(int identifier, ModifierKeys modifiers, Key key)
+        {
+            var mre = new ManualResetEventSlim();
+            operations.TryAdd(identifier, (mre, false));
+
+            var lp = (nint)modifiers << 32 | KeyInterop.VirtualKeyFromKey(key);
+            PInvoke.PostThreadMessage(workThreadId, WmRegisterHotKey, new WPARAM((nuint)identifier), new LPARAM(lp));
+
+            mre.Wait();
+            operations.TryRemove(identifier, out var result);
+            return result.Item2;
+        }
+
+        private void RemoveHotkey(int id)
+        {
+            var mre = new ManualResetEventSlim();
+            operations.TryAdd(id, (mre, false));
+
+            PInvoke.PostThreadMessage(workThreadId, WmUnRegisterHotKey, new WPARAM((nuint)id), new LPARAM());
+
+            mre.Wait();
+            operations.TryRemove(id, out var result);
+        }
+
+        private void SendKeys(ModifierKeys modifiers, Key key)
+        {
+            var inputs = new List<INPUT>();
+
+            if (modifiers.HasFlag(ModifierKeys.Shift))
+                inputs.Add(CreateKeyOp(Key.LeftShift));
+
+            if (modifiers.HasFlag(ModifierKeys.Alt))
+                inputs.Add(CreateKeyOp(Key.LeftAlt));
+
+            if (modifiers.HasFlag(ModifierKeys.Control))
+                inputs.Add(CreateKeyOp(Key.LeftCtrl));
+
+            if (modifiers.HasFlag(ModifierKeys.Windows))
+                inputs.Add(CreateKeyOp(Key.LWin));
+
+            inputs.Add(CreateKeyOp(key));
+            inputs.Add(CreateKeyOp(key, true));
+
+            if (modifiers.HasFlag(ModifierKeys.Windows))
+                inputs.Add(CreateKeyOp(Key.LWin, true));
+
+            if (modifiers.HasFlag(ModifierKeys.Control))
+                inputs.Add(CreateKeyOp(Key.LeftCtrl, true));
+
+            if (modifiers.HasFlag(ModifierKeys.Alt))
+                inputs.Add(CreateKeyOp(Key.LeftAlt, true));
+
+            if (modifiers.HasFlag(ModifierKeys.Shift))
+                inputs.Add(CreateKeyOp(Key.LeftShift, true));
+
+            PInvoke.SendInput(inputs.ToArray(), Unsafe.SizeOf<INPUT>());
+
+            static INPUT CreateKeyOp(Key key, bool up = false)
+            {
+                return new INPUT()
+                {
+                    type = INPUT_TYPE.INPUT_KEYBOARD,
+                    Anonymous = new()
+                    {
+                        ki = new KEYBDINPUT
+                        {
+                            wVk = (VIRTUAL_KEY)KeyInterop.VirtualKeyFromKey(key),
+                            dwFlags = up ? KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP : (KEYBD_EVENT_FLAGS)0
+                        }
+                    }
+                };
+            }
+        }
         
         private void Dispose(bool disposing)
         {

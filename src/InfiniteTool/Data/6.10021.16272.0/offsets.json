@@ -5,8 +5,10 @@
   "CheckpointInfo": "0x446a290", // game_reverted checks the lastRevertTicks vs current ticks, so this is -0x18 bytes from there
   "game_revert": "0x2684e78",
   "game_save_fast": "0x2a7a81c",
+  "MainMenuScenarioName": "0x4476958",
 
   "ai_enable": "0x2770740",
+  "ai_enabled": "0x00acf928",
   "ai_kill_all": "0x279d9a8",
   "player_get": "0x0293acc4",
   "Unit_RefillAmmo": "0x02af8724",
@@ -15,15 +17,34 @@
   "object_set_shield": "0x293a7a8",
   "Object_SetObjectCannotTakeDamage": "0x2af6f38",
   "Object_GetObjectCannotTakeDamage": "0x02af63c4",
+  "LoadScreenActive": "0x00acdcd0",
+  "IsInCampaignMenu": "0x004c1d64",
+  "game_save_is_valid": "0x00f83130",
+  "composer_show_scene_is_playing": "0x00f4f77c",
+  "cinematic_in_progress": "0x0042bc20",
+  "Level_IsCurrentNameEqual": "0x00d6335c",
+  "map_reset": "0x02684cec",
+  "object_set_physics": "0x02ea1dc0",
+  "ResolveObjectPointer": "0x3c2d14",
+  "RestartMission": "0x297758c",
 
   "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
+
+  "GetGameTimeGlobalsAddress": "0x1b59640",
+  "ResolveGameStateStuff": "0x3d3fe4",
+
   "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
+  "Persistence_TryCreateKeyFromString": "0x00c321d4",
   "Persistence_SetLongKey": "0xddf390",
   "Persistence_SetByteKey": "0x008aef24",
   "Persistence_SetBoolKey": "0x00e06238",
   "Persistence_BatchSetBoolKeys": "0x01bc6290",
   "Persistence_BatchSetByteKeys": "0x01bc6250",
   "Persistence_BatchSetLongKeys": "0x01bc66f0",
+
+  "Persistence_BatchSetBoolKeysForParticipant": "0x01bc6490",
+  "Persistence_BatchSetByteKeysForParticipant": "0x01bc6c00",
+  "Persistence_BatchSetLongKeysForParticipant": "0x01bc6680",
 
   "Persistence_BatchGetBoolKeys": "0x1bc6c30",
   "Persistence_BatchGetByteKeys": "0x1bc6d80",
@@ -36,6 +57,14 @@
   "Persistence_IsBoolKeyOverridenForParticipant": "0x02aaf678",
   "Persistence_IsByteKeyOverridenForParticipant": "0x02aaf86c",
   "Persistence_IsLongKeyOverridenForParticipant": "0x02aaf6c0",
+
+  "Persistence_BatchRemoveBoolKeyOverrides": "0x01bc6d40",
+  "Persistence_BatchRemoveByteKeyOverrides": "0x01bc6a70",
+  "Persistence_BatchRemoveLongKeyOverrides": "0x01bc6850",
+
+  "Persistence_BatchOverrideBoolKeys": "0x01bc6870",
+  "Persistence_BatchOverrideByteKeys": "0x01bc6730",
+  "Persistence_BatchOverrideLongKeys": "0x01bc6710",
 
   "GetMessageBuffer": "0x13bf710",
   "GetMessageBufferSlot": "0x13bee30",

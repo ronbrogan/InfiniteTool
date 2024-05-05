@@ -14,21 +14,6 @@ namespace InfiniteTool.GameInterop.Internal
 
     public class JsonOffsetProvider : IOffsetProvider
     {
-        private JsonSerializerOptions jsonOptions;
-
-        public JsonOffsetProvider()
-        {
-            var options = new JsonSerializerOptions();
-            options.Converters.Add(new NintConverter());
-            options.WriteIndented = true;
-            options.ReadCommentHandling = JsonCommentHandling.Skip;
-
-            SerializationOptions.AddJsonConverters(options);
-
-            jsonOptions = options;
-        }
-
-
         public InfiniteOffsets GetOffsets(string version)
         {
             var file = Path.Combine(Environment.CurrentDirectory, "Data", version, "offsets.json");
@@ -36,7 +21,7 @@ namespace InfiniteTool.GameInterop.Internal
             try
             {
                 var json = File.ReadAllText(file);
-                return JsonSerializer.Deserialize<InfiniteOffsets>(json, jsonOptions) ?? InfiniteOffsets.Unknown;
+                return JsonSerializer.Deserialize<InfiniteOffsets>(json, SourceGenerationContext.Default.InfiniteOffsets) ?? InfiniteOffsets.Unknown;
             }
             catch (Exception ex)
             {

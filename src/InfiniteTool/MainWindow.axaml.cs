@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using InfiniteTool.Keybinds;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
@@ -11,7 +12,10 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace InfiniteTool
 {
@@ -19,16 +23,14 @@ namespace InfiniteTool
     [DoNotNotify]
     public partial class MainWindow : Window
     {
-        public readonly Hotkeys Hotkeys;
         private readonly ILogger<MainWindow> logger;
 
         public GameContext Game { get; set; }
 
-        public MainWindow(GameContext context, Hotkeys hotkeys, ILogger<MainWindow> logger)
+        public MainWindow(GameContext context, ILogger<MainWindow> logger)
         {
             InitializeComponent();
             this.Game = context;
-            this.Hotkeys = hotkeys;
             this.DataContext = context;
             this.logger = logger;
             this.Loaded += MainWindow_Loaded;
@@ -40,7 +42,7 @@ namespace InfiniteTool
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            KeyBinds.Initialize(this, Hotkeys);
+            KeyBinds.Initialize(this);
         }
 
         private void points_Click(object sender, RoutedEventArgs e)
@@ -112,6 +114,19 @@ namespace InfiniteTool
         {
             //MessageBox.Show("Ejecting from the process will cause this tool to cease functioning until the game or the tool is restarted");
             this.Game.Instance.RemoteProcess.EjectMombasa();
+        }
+
+        public void toggleMapResetOnLoad(object? sender, PointerReleasedEventArgs e)
+        {
+            this.Game.MapResetOnLoad = !this.Game.MapResetOnLoad;
+        }
+
+        public void ToggleAdvancedMode(object? sender, PointerReleasedEventArgs args)
+        {
+            this.Game.AdvancedMode = !this.Game.AdvancedMode;
+
+            if (args.KeyModifiers.HasFlag(KeyModifiers.Control))
+                this.Game.ReallyAdvancedMode = !this.Game.ReallyAdvancedMode;
         }
 
         private void replInvoke_Click(object sender, RoutedEventArgs e)
@@ -226,28 +241,21 @@ namespace InfiniteTool
             }
         }
 
+        private bool reading = false;
         private void readInvoke_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var addr = GetDataFromHexBox("data3");
+
+
+            if (reading)
             {
-                var addr = GetDataFromHexBox("data3");
-
-                var proc = this.Game.Instance.RemoteProcess;
-
-                var len = 64;
-
-
-                var sw = Stopwatch.StartNew();
-
-                var data = new byte[len];
-                proc.ReadSpanAt<byte>(addr, data);
-
-                SetResult(Convert.ToHexString(data));
+                reading = false;
+                return;
             }
-            catch (Exception ex)
-            {
-                SetResult("Exception Cought\r\n" + ex.ToString());
-            }
+
+            this.Find<TextBox>("readResult").Text = string.Empty;
+            reading = true;
+            _ = ReadLoop(addr);
 
             nint GetDataFromHexBox(string name)
             {
@@ -262,12 +270,39 @@ namespace InfiniteTool
 
                 return (nint)Convert.ToInt64(box.Text, 16);
             }
+        }
+
+        private async Task ReadLoop(nint addr)
+        {
+            nint lastResult = 0;
+            var proc = this.Game.Instance.RemoteProcess;
+
+            while (reading)
+            {
+
+                try
+                {
+                    proc.ReadAt<nint>(addr, out var val);
+
+                    if(lastResult != val)
+                    {
+                        SetResult(Convert.ToHexString(MemoryMarshal.CreateSpan(ref Unsafe.As<nint, byte>(ref val), 8)));
+                        lastResult = val;
+                    }
+
+                    await Task.Delay(10);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
 
             void SetResult(string content)
             {
-                this.Find<TextBox>("readResult").Text = content;
+                this.Find<TextBox>("readResult").Text += "\r\n" + content;
             }
         }
+
 
         private async void dumpExe_Click(object sender, RoutedEventArgs e)
         {
