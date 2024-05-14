@@ -99,7 +99,7 @@ namespace InfiniteTool
             var persistence = _host.Services.GetRequiredService<GamePersistence>();
 
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            //mainWindow.Show();
+            PrimaryWindow = mainWindow;
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

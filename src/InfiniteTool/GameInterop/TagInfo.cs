@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using InfiniteTool.Formats;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -14,7 +15,8 @@ namespace InfiniteTool.GameInterop
 
         public static Tags LoadTags()
         {
-            return JsonSerializer.Deserialize<Tags>(File.ReadAllText("Data/tags.json"), SourceGenerationContext.Default.Tags)!;
+            using var json = File.OpenRead("Data/tags.json");
+            return Json.DeserializeTags(json)!;
         }
     }
 

@@ -85,12 +85,17 @@ namespace InfiniteTool.GameInterop
                 if (Engine.LoadScreenActive())
                     return false;
 
-                if (Engine.Level_IsCurrentNameEqual(this.RemoteProcess.GetBaseOffset() + this.offsets.MainMenuScenarioName))
+                if (this.InMainMenu())
                     return false;
             }
             catch { return false; }
 
             return true;
+        }
+
+        public bool InMainMenu()
+        {
+            return Engine.Level_IsCurrentNameEqual(this.RemoteProcess.GetBaseOffset() + this.offsets.MainMenuScenarioName);
         }
 
         public bool InCutscene()
@@ -103,10 +108,13 @@ namespace InfiniteTool.GameInterop
                 if (Engine.LoadScreenActive())
                     return false;
 
-                if (Engine.composer_show_scene_is_playing())
-                    return true;
+                //if (Engine.composer_show_scene_is_playing())
+                //    return true;
 
                 if (Engine.cinematic_in_progress())
+                    return true;
+
+                if(Engine.ReadInCageFlag())
                     return true;
             }
             catch { return false; }
@@ -386,7 +394,7 @@ namespace InfiniteTool.GameInterop
 
         internal void NukeAi()
         {
-            Operation("Dropping nuke", async () =>
+            _ = Operation("Dropping nuke", async () =>
             {
                 await Task.Delay(500);
                 Engine.ai_kill_all();
@@ -395,7 +403,7 @@ namespace InfiniteTool.GameInterop
 
         internal void ToggleSkull(string name, int id)
         {
-            Operation($"Toggling skull {name}", async () =>
+            _ = Operation($"Toggling skull {name}", async () =>
             {
                 var en = this.Engine.is_skull_active(id);
                 this.Engine.skull_enable(id, !en);
@@ -783,6 +791,35 @@ namespace InfiniteTool.GameInterop
             }
         }
 
+        private async Task Operation(string message, Func<Task> func, string? log = null)
+        {
+            log ??= message;
+            this.logger.LogInformation($"UserOperation: {log}");
+            this.PrepareForScriptCalls();
+            var success = false;
+
+            try
+            {
+                this.ShowMessage(message);
+                await func();
+                success = true;
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    this.ShowMessage($"Failure during {message}, check logs");
+                }
+                catch { }
+
+                this.logger.LogError(e, $"Failure during {message}");
+            }
+            finally
+            {
+                this.allocator.Reclaim(zero: true);
+            }
+        }
+
         internal void ForceSkipCutscene()
         {
             Operation("Skipping CS", () => this.Engine.composer_debug_cinematic_skip(), "Skip cutscene requested");
@@ -818,8 +855,15 @@ namespace InfiniteTool.GameInterop
 
         internal bool PlayerNoClip()
         {
-            var player = Engine.player_get(0);
+            var player = (int)Engine.player_get(0);
+            if (player == -1)
+                return false;
+
             var objAddr = Engine.ResolveObjectPointer(player);
+
+            if (objAddr == 0)
+                return false;
+
             this.RemoteProcess.ReadAt<nint>(objAddr + 0xf0, out var flags);
             return (flags & 0x100) != 0;
         }
@@ -854,6 +898,70 @@ namespace InfiniteTool.GameInterop
         {
             this.RemoteProcess.ReadAt<GameTimeGlobals>(Engine.GetGameTimeGlobalsAddress(), out var timeGlobals);
             return timeGlobals.GameTimeMultiplier > 1;
+        }
+
+        internal void ToggleCoords()
+        {
+            var val = CoordsOn();
+            Operation($"Pancam [{(!val ? "ON" : "OFF")}]", () =>
+            {
+                var start = this.Engine.GetGameStateFlagsBase();
+                this.RemoteProcess.WriteAt<byte>(start + this.offsets.CheatsEnabledOffset, 1);
+
+                var flags = this.Engine.ResolveCheatFlagsLocation();
+                this.RemoteProcess.WriteAt<byte>(flags + this.offsets.PancamEnabledOffset, val ? (byte)0 : (byte)1);
+            });
+        }
+
+        internal bool CoordsOn()
+        {
+            if(!this.Engine.CheatsAreEnabled())
+                return false;
+
+            var flags = this.Engine.ResolveCheatFlagsLocation();
+            if (flags == 0)
+                return false;
+
+            this.RemoteProcess.ReadAt<byte>(flags + this.offsets.PancamEnabledOffset, out var val);
+            return val != 0;
+        }
+
+        internal void ChangeDifficulty(string v)
+        {
+            _ = Operation($"Diff -> {v}", async () =>
+            {
+                var diff = v switch
+                {
+                    "easy" => 0,
+                    "normal" => 1,
+                    "heroic" => 2,
+                    "legendary" => 3,
+                    _ => throw new NotImplementedException()
+                };
+
+                // game difficulty change will not take effect unless the game is loading, so revert first
+                this.Engine.map_reset();
+                await Task.Delay(300);
+                this.Engine.game_difficulty(diff);
+            });
+        }
+
+        internal void ToggleFlyCam()
+        {
+            var val = FlycamEnabled();
+            Operation($"Flycam [{(!val ? "ON" : "OFF")}]", () =>
+            {
+                var start = this.Engine.GetGameStateFlagsBase();
+                this.RemoteProcess.WriteAt<byte>(start + this.offsets.CheatsEnabledOffset, 1);
+
+                var flags = this.Engine.ResolveCheatFlagsLocation();
+                this.RemoteProcess.WriteAt<byte>(flags + this.offsets.FlycamEnabledOffset, val ? (byte)0 : (byte)1);
+            });
+        }
+
+        internal bool FlycamEnabled()
+        {
+            return this.Engine.FlycamIsEnabled();
         }
     }
 }

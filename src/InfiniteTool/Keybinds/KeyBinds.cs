@@ -4,6 +4,7 @@ using HarfBuzzSharp;
 using PropertyChanged;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace InfiniteTool.Keybinds
@@ -18,6 +19,7 @@ namespace InfiniteTool.Keybinds
     }
 
     [AddINotifyPropertyChangedInterface]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public abstract class BindableUiAction : IBindableUiAction
     {
         public string Id { get; set; }

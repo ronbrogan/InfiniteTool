@@ -107,14 +107,7 @@ namespace InfiniteTool
                 return;
             }
 
-            var mre = new ManualResetEventSlim();
-            operations.TryAdd(id, (mre, false));
-
-            PInvoke.PostThreadMessage(workThreadId, WmUnRegisterHotKey, new WPARAM((nuint)id), new LPARAM());
-
-            mre.Wait();
-            operations.TryRemove(id, out var result);
-
+            RemoveHotkey(id);
             this.registeredKeys.Remove((modifiers, key));
             this.keyCallbacks.Remove(id);
             this.identifiers.Remove(id);

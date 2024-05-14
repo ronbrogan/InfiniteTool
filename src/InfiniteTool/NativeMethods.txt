@@ -6,3 +6,9 @@ PeekMessage
 PostThreadMessage
 GetCurrentThreadId
 SendInput
+
+CredEnumerateW
+CredRead
+CredWrite
+CredFree
+CredDelete

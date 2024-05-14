@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using InfiniteTool.Credentials;
 using InfiniteTool.Extensions;
 using InfiniteTool.Formats;
 using InfiniteTool.GameInterop;
@@ -17,6 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -25,6 +27,7 @@ using static InfiniteTool.GameInterop.GamePersistence;
 
 namespace InfiniteTool
 {
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public class SkullActionItem : ActionItem
     {
         public SkullActionItem(GameContext context, string name, int id)
@@ -36,6 +39,7 @@ namespace InfiniteTool
     }
 
     [AddINotifyPropertyChangedInterface]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public class ActionItem : BindableUiAction
     {
         private readonly Action action;
@@ -102,6 +106,7 @@ namespace InfiniteTool
     }
 
     [AddINotifyPropertyChangedInterface]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public class GameContext
     {
         private readonly ILogger<GameContext> logger;
@@ -186,26 +191,24 @@ namespace InfiniteTool
 
                 new ActionItem("Skip Cutscene", "cutsceneSkip", Instance.ForceSkipCutscene).WithGuard(c => c.InCutscene),
                 new("Suppress CPs", "toggleCheckpointSuppression", Instance.ToggleCheckpointSuppression, Instance.CheckpointsSuppressed),
-                new("Show Coords", "coords", Instance.RestockPlayer),
+                new("Show Coords", "pancam", Instance.ToggleCoords, Instance.CoordsOn),
+
+                new("Reload Map", "mapReset", () => Instance.Engine.map_reset()),
             };
 
             Hacks = new()
             {
-                new("No clip", "noclip", Instance.TogglePlayerNoClip, Instance.PlayerNoClip),
                 new("Slow-mo", "slowMoGuys", Instance.ToggleSlowMo, Instance.SlowMoActivated),
                 new("Fast-mo", "fastMoGals", Instance.ToggleFastMo, Instance.FastMoActivated),
-
                 new("Stop Time", "pause", Instance.ToggleGameTimePause, Instance.GameTimeIsPaused),
+
                 new("Suspend AI","aiSuspend", Instance.ToggleAi, Instance.AiDisabled),
                 new("Nuke All AI","aiNuke", Instance.NukeAi),
-
                 new("Toggle Invuln","invuln", Instance.ToggleInvuln, Instance.PlayerIsInvulnerable),
+
+                new("No clip", "noclip", Instance.TogglePlayerNoClip, Instance.PlayerNoClip),
+                new("Fly cam", "flycam", Instance.ToggleFlyCam, Instance.FlycamEnabled),
                 new("Restock", "restock", Instance.RestockPlayer),
-
-
-                new("Easy Diff", "makeEasy", Instance.TriggerCheckpoint),
-                new("Leg Diff", "makeLeg", Instance.TriggerCheckpoint),
-
             };
 
             // Register all current action items with hotkeys, etc
@@ -218,6 +221,7 @@ namespace InfiniteTool
         private void Instance_BeforeDetach(object? sender, EventArgs e)
         {
             enforceTogglesCts.Cancel();
+            enforceEquipmentCts.Cancel();
             Dispatcher.UIThread.Invoke(() =>
             {
                 this.HasProcess = false;
@@ -230,7 +234,8 @@ namespace InfiniteTool
             {
                 this.HasProcess = true;
                 this.LoadToggleStates();
-                await EnforceToggleStates();
+                _ = EnforceToggleStates();
+                _ = EnforceEquipmentUnlocks();
             });
         }
 
@@ -305,9 +310,92 @@ namespace InfiniteTool
             }
         }
 
+        private nint lastRefreshTime = nint.MaxValue;
+        private CancellationTokenSource enforceEquipmentCts = new();
+        private async Task EnforceEquipmentUnlocks()
+        {
+            enforceTogglesCts = new CancellationTokenSource();
+
+            await Task.Delay(250);
+
+            while (!enforceEquipmentCts.IsCancellationRequested)
+            {
+                this.ProbablyInGame = Instance.ProbablyIsInGame();
+                this.Paused = Instance.IsPaused();
+                this.InCutscene = Instance.InCutscene();
+
+                if (this.Instance.InMainMenu())
+                    lastRefreshTime = nint.MaxValue;
+
+                var curTime = this.Instance.Engine.Engine_GetCurrentTime();
+
+                if(ProbablyInGame && curTime < lastRefreshTime)
+                {
+                    var p = this.Persistence.GetEquipementRefreshPersistence();
+
+                    var walllevel = p.First(e => e.KeyName == "schematic_wall");
+
+                    if (walllevel.GlobalValue != 0)
+                    {
+                        // we should have dropwall
+
+                        var player = this.Instance.Engine.player_get(0);
+                        var dropwallIndex = this.Instance.Engine.Unit_GetEquipmentIndexByAbilityType(player, 0);
+
+                        if (dropwallIndex == -1)
+                        {
+                            // we don't have a dropwall tho
+
+                            await this.Persistence.RefreshEquipment();
+                        }
+                    }
+
+                    this.lastRefreshTime = curTime;
+                }
+
+                await Task.Delay(250);
+            }
+        }
+
         public void ToggleShouldPersistToggles()
         {
             this.ShouldPersistToggles = !this.ShouldPersistToggles;
+        }
+
+        public void ClearInfiniteCreds()
+        {
+            CredentialStore.ClearInfiniteCredentials();
+        }
+
+        public async Task ImportInfiniteCreds()
+        {
+            var storage = TopLevel.GetTopLevel(App.PrimaryWindow).StorageProvider;
+            var results = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select credentials to load",
+                SuggestedStartLocation = await storage.TryGetFolderFromPathAsync(Environment.CurrentDirectory),
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Infinite Credentials File"){ Patterns = new string[] { "*.infcred" } }
+                }
+            });
+
+            var result = results.FirstOrDefault();
+
+            if (result != null)
+            {
+                CredentialStore.LoadInfiniteCredentials(result.TryGetLocalPath());
+            }
+        }
+
+        public async void RefreshEquipment()
+        {
+            await this.Persistence.RefreshEquipment();
+        }
+
+        public void ExportInfiniteCreds()
+        {
+            CredentialStore.SaveInfiniteCredentials();
         }
 
         public void RefreshPersistence()

@@ -6,6 +6,8 @@
         xmlns:local="clr-namespace:InfiniteTool"
         xmlns:wpfutil="clr-namespace:InfiniteTool.WPF"
         mc:Ignorable="d"
+		TransparencyLevelHint="AcrylicBlur"
+        Background="rgba(0, 0, 0, 0.5)"
         Title="About" Height="400" Width="350"
         Icon="infinity.ico">
     <Grid>

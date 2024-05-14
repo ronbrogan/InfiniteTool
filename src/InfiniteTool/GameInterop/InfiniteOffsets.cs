@@ -1,21 +1,9 @@
-﻿using InfiniteTool.GameInterop;
-using InfiniteTool.GameInterop.EngineDataTypes;
+﻿using InfiniteTool.GameInterop.EngineDataTypes;
 using Superintendent.Core;
-using Superintendent.Core.Remote;
-using Superintendent.Core.Serialization;
 using Superintendent.Generation;
-using System;
-using System.Text.Json.Serialization;
 
 namespace InfiniteTool
 {
-    [JsonSourceGenerationOptions(WriteIndented = true, Converters = [typeof(GameInterop.Internal.JsonOffsetProvider.NintConverter), typeof(HexStringNintConverter), typeof(HexStringFuncConverter), typeof(HexStringPointerConverter)], ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip)]
-    [JsonSerializable(typeof(InfiniteOffsets))]
-    [JsonSerializable(typeof(Tags))]
-    internal partial class SourceGenerationContext : JsonSerializerContext
-    {
-    }
-
     [GenerateClient]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public partial class InfiniteOffsets
@@ -81,6 +69,8 @@ namespace InfiniteTool
 
         public Fun<bool> IsInCampaignMenu { get; set; }
 
+        public Ptr<bool> InCageFlag { get; set; }
+
         public Fun<bool> game_save_is_valid { get; set; }
 
         public Fun<bool> composer_show_scene_is_playing { get; set; }
@@ -97,6 +87,18 @@ namespace InfiniteTool
 
         public Fun<nint> ResolveGameStateStuff { get; set; }
 
+
+        public Fun<nint> GetGameStateFlagsBase { get; set; }
+        public nint CheatsEnabledOffset { get; set; }
+
+
+        public Fun<nint> ResolveCheatFlagsLocation { get; set; }
+        public nint FlycamEnabledOffset { get; set; }
+        public nint PancamEnabledOffset { get; set; }
+
+        public Fun<bool> FlycamIsEnabled { get; set; }
+        public Fun<bool> CheatsAreEnabled { get; set; }
+
         [ParamNames("objectId")]
         public Fun<nint, nint> ResolveObjectPointer { get; set; }
 
@@ -105,6 +107,10 @@ namespace InfiniteTool
 
         public Ptr<nint> ThreadLocalStaticInitializer { get; set; }
 
+        public Fun<nint> Engine_GetCurrentTime { get; set; }
+
+        [ParamNames("player", "equipmentType")]
+        public Fun<nint, int, int> Unit_GetEquipmentIndexByAbilityType { get; set; }
 
         [ParamNames("zero", "keysResult", "strings")]
         public FunVoid<int, nint, nint> Persistence_BatchTryCreateKeysFromStrings { get; set; }
@@ -164,6 +170,8 @@ namespace InfiniteTool
 
         [ParamNames("buffer", "bufferSlot", "duration", "stringPointerUtf16")]
         public FunVoid<int, nint, float, nint> ShowMessage { get; set; }
+
+        public FunVoid<int> game_difficulty { get; set; }
 
         [ParamNames("skullId", "enable")]
         public FunVoid<int, bool> skull_enable { get; set; }

@@ -22,6 +22,8 @@
   "game_save_is_valid": "0x00f83130",
   "composer_show_scene_is_playing": "0x00f4f77c",
   "cinematic_in_progress": "0x0042bc20",
+  "InCageFlag": "0x4AF26B0",
+  "Engine_GetCurrentTime": "0x2b1a214",
   "Level_IsCurrentNameEqual": "0x00d6335c",
   "map_reset": "0x02684cec",
   "object_set_physics": "0x02ea1dc0",
@@ -32,6 +34,18 @@
 
   "GetGameTimeGlobalsAddress": "0x1b59640",
   "ResolveGameStateStuff": "0x3d3fe4",
+
+  "GetGameStateFlagsBase": "0x4291d8",
+  "CheatsAreEnabled": "0xaf7130",
+  "CheatsEnabledOffset": "0x241",
+
+  "ResolveCheatFlagsLocation": "0x1b3cfb0",
+
+
+  "PancamEnabledOffset": "0xd32",
+  "FlycamEnabledOffset": "0xd30",
+
+  "FlycamIsEnabled": "0xaf7094",
 
   "Persistence_BatchTryCreateKeysFromStrings": "0x1bc6ad0",
   "Persistence_TryCreateKeyFromString": "0x00c321d4",
@@ -72,6 +86,8 @@
 
   "skull_enable": "0x02a976ac",
   "is_skull_active": "0x005aaef0",
+  "game_difficulty": "0x028b4c14", // no worky
 
-  "composer_debug_cinematic_skip": "0x028d00c4"
+  "composer_debug_cinematic_skip": "0x028d00c4",
+  "Unit_GetEquipmentIndexByAbilityType": "0x02b14f7c"
 }

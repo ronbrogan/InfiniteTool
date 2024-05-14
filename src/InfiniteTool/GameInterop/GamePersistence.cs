@@ -7,6 +7,7 @@ using Superintendent.Core.Remote;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace InfiniteTool.GameInterop
 {
@@ -120,31 +121,110 @@ namespace InfiniteTool.GameInterop
             return this.stringToKeyMap[keyString];
         }
 
+        private static string[] EquipmentKeys = new string[]
+        {
+            "schematic_evade",
+            "schematic_wall",
+            "schematic_sensor",
+            "Schematic-ShieldUpdgrade1",
+            "Schematic-ShieldUpdgrade2",
+            "Schematic-ShieldUpdgrade3",
+            "Grapple_Upgrade_Level",
+            "Evade_Upgrade_Level",
+            "Wall_Upgrade_Level",
+            "Sensor_Upgrade_Level",
+            "Shield_Upgrade_Level",
+            "spartan_griffin",
+            "spartan_makovich",
+            "spartan_sorel",
+            "spartan_horvath",
+            "spartan_vettel",
+            "spartan_stone",
+            "spartan_kovan",
+        };
+
+        public List<ProgressionEntry> GetEquipementRefreshPersistence()
+        {
+            return GetProgress(EquipmentKeys);
+        }
+
+        public class EquipmentPersistence
+        {
+            public bool schematic_evade { get; set; }
+            public bool schematic_wall { get; set; }
+            public bool schematic_sensor { get; set; }
+            public bool Schematic_ShieldUpdgrade1 { get; set; }
+            public bool Schematic_ShieldUpdgrade2 { get; set; }
+            public bool Schematic_ShieldUpdgrade3 { get; set; }
+
+            public byte Grapple_Upgrade_Level { get; set; }
+            public byte Evade_Upgrade_Level { get; set; }
+            public byte Wall_Upgrade_Level  { get; set; }
+            public byte Sensor_Upgrade_Level { get; set; }
+            public byte Shield_Upgrade_Level { get; set; }
+        }
+
+        public async Task RefreshEquipment()
+        {
+            this.instance.ShowMessage("Refreshing equipment");
+
+            var equip = this.GetEquipementRefreshPersistence();
+            var prev = new Dictionary<string, uint>();
+
+            foreach (var e in equip)
+            {
+                if (e.DataType == "Boolean")
+                {
+                    e.GlobalValue ^= 1;
+                }
+                else
+                {
+                    prev[e.KeyName] = e.GlobalValue;
+                    e.GlobalValue = 0;
+                }
+            }
+
+            this.SetProgress(equip);
+
+            await Task.Delay(10);
+
+            foreach (var e in equip)
+            {
+                if (e.DataType == "Boolean")
+                {
+                    e.GlobalValue ^= 1;
+                }
+                else
+                {
+                    e.GlobalValue = prev[e.KeyName];
+                }
+            }
+
+            this.SetProgress(equip);
+        }
+
         public List<ProgressionEntry> GetAllProgress()
+        {
+            return GetProgress(persistenceKeys);
+        }
+
+        public List<ProgressionEntry> GetProgress(string[] persistenceStringKeys)
         {
             this.EnsureBoostrapped();
 
             if (this.allocator == null) return new List<ProgressionEntry>();
 
-            var keys = this.stringToKeyMap.ToArray();
-
             this.instance.PrepareForScriptCalls();
 
             lock (this.allocator)
             {
-                var keyList = allocator.AllocateList<uint>(persistenceKeys.Length);
-                var intKeys = keys.Select(k => k.Value).ToArray();
+                var keyList = allocator.AllocateList<uint>(persistenceStringKeys.Length);
+                var intKeys = persistenceStringKeys.Select(k => this.stringToKeyMap[k]).ToArray();
                 keyList.AddValues(intKeys);
 
-                var globalBools = allocator.AllocateList<bit>(persistenceKeys.Length);
-                var globalBytes = allocator.AllocateList<short>(persistenceKeys.Length);
-                var globalLongs = allocator.AllocateList<uint>(persistenceKeys.Length);
-
-                var participantBools = allocator.AllocateList<bit>(persistenceKeys.Length);
-                var participantBytes = allocator.AllocateList<short>(persistenceKeys.Length);
-                var participantLongs = allocator.AllocateList<uint>(persistenceKeys.Length);
-
-                //var participantId = (nint)(CurrentParticipantId << 16);
+                var globalBools = allocator.AllocateList<bit>(persistenceStringKeys.Length);
+                var globalBytes = allocator.AllocateList<short>(persistenceStringKeys.Length);
+                var globalLongs = allocator.AllocateList<uint>(persistenceStringKeys.Length);
 
                 engine.Persistence_BatchGetBoolKeys(0x0, globalBools, keyList);
                 engine.Persistence_BatchGetByteKeys(0x0, globalBytes, keyList);
@@ -157,24 +237,17 @@ namespace InfiniteTool.GameInterop
                 globalBools.SyncFrom();
                 globalBytes.SyncFrom();
                 globalLongs.SyncFrom();
-                
-                participantBools.SyncFrom();
-                participantBytes.SyncFrom();
-                participantLongs.SyncFrom();
 
-                var globalBitValues = globalBools.GetValues(0, keys.Length);
-                var participantBitValues = participantBools.GetValues(0, keys.Length);
+                var globalBitValues = globalBools.GetValues(0, persistenceStringKeys.Length);
 
-                var globalByteValues = globalBytes.GetValues(0, keys.Length);
-                var participantByteValues = participantBytes.GetValues(0, keys.Length);
+                var globalByteValues = globalBytes.GetValues(0, persistenceStringKeys.Length);
 
-                var globalLongValues = globalLongs.GetValues(0, keys.Length);
-                var participantLongValues = participantLongs.GetValues(0, keys.Length);
+                var globalLongValues = globalLongs.GetValues(0, persistenceStringKeys.Length);
 
-                var results = new List<ProgressionEntry>(keys.Length);
+                var results = new List<ProgressionEntry>(persistenceStringKeys.Length);
 
                 var i = 0;
-                foreach (var (str, key) in keys)
+                foreach (var str in persistenceStringKeys)
                 {
                     var type = InteropConstantData.PersistenceKeys[str];
 
@@ -186,20 +259,12 @@ namespace InfiniteTool.GameInterop
                         _ => 0,
                     };
 
-                    uint participantValue = type switch
-                    {
-                        PersistenceValueType.Boolean => (uint)participantBitValues[i],
-                        PersistenceValueType.Byte => (uint)participantByteValues[i],
-                        PersistenceValueType.Long => participantLongValues[i],
-                        _ => 0,
-                    };
-
                     results.Add(new ProgressionEntry()
                     {
                         KeyName = str,
                         DataType = type.ToString(),
                         GlobalValue = globalValue,
-                        ParticipantValue = participantValue,
+                        ParticipantValue = globalValue,
                     });
                     
                     i++;
@@ -210,48 +275,12 @@ namespace InfiniteTool.GameInterop
             }
         }
 
+        // TODO remove?
         private HashSet<string> keysToOverride = new HashSet<string>()
         {
             //"Loadout-FirstWeaponExists",
             //"Loadout-FirstWeaponTag",
-            //"Loadout-FirstWeaponConfigTag",
-            //"Loadout-FirstWeaponVariant",
-            //"Loadout-FirstWeaponAmmoLoaded",
-            //"Loadout-FirstWeaponTotalAmmo",
-            //"Loadout-FirstWeaponAge",
-            //"Loadout-SecondWeaponExists",
-            //"Loadout-SecondWeaponTag",
-            //"Loadout-SecondWeaponConfigTag",
-            //"Loadout-SecondWeaponVariant",
-            //"Loadout-SecondWeaponAmmoLoaded",
-            //"Loadout-SecondWeaponTotalAmmo",
-            //"Loadout-SecondWeaponAge",
-            //"Loadout-ThirdWeaponExists",
-            //"Loadout-ThirdWeaponTag",
-            //"Loadout-ThirdWeaponConfigTag",
-            //"Loadout-ThirdWeaponVariant",
-            //"Loadout-ThirdWeaponAmmoLoaded",
-            //"Loadout-ThirdWeaponTotalAmmo",
-            //"Loadout-ThirdWeaponAge",
-            //"Loadout-FourthWeaponExists",
-            //"Loadout-FourthWeaponTag",
-            //"Loadout-FourthWeaponConfigTag",
-            //"Loadout-FourthWeaponVariant",
-            //"Loadout-FourthWeaponAmmoLoaded",
-            //"Loadout-FourthWeaponTotalAmmo",
-            //"Loadout-FourthWeaponAge",
-            //"Loadout-FirstGrenadeExists",
-            //"Loadout-FirstGrenadeType",
-            //"Loadout-FirstGrenadeCount",
-            //"Loadout-SecondGrenadeExists",
-            //"Loadout-SecondGrenadeType",
-            //"Loadout-SecondGrenadeCount",
-            //"Loadout-ThirdGrenadeExists",
-            //"Loadout-ThirdGrenadeType",
-            //"Loadout-ThirdGrenadeCount",
-            //"Loadout-FourthGrenadeExists",
-            //"Loadout-FourthGrenadeType",
-            //"Loadout-FourthGrenadeCount",
+            //"Loadout-FirstWeaponConfigTag"
         };
 
         public void SetProgress(List<ProgressionEntry> entries)

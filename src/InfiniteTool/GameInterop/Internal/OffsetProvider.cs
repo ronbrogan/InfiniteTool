@@ -1,4 +1,5 @@
-﻿using Superintendent.Core.Serialization;
+﻿using InfiniteTool.Formats;
+using Superintendent.Core.Serialization;
 using System;
 using System.IO;
 using System.Text.Json;
@@ -20,8 +21,9 @@ namespace InfiniteTool.GameInterop.Internal
 
             try
             {
-                var json = File.ReadAllText(file);
-                return JsonSerializer.Deserialize<InfiniteOffsets>(json, SourceGenerationContext.Default.InfiniteOffsets) ?? InfiniteOffsets.Unknown;
+                using var json = File.OpenRead(file);
+
+                return Json.DeserializeOffsets(json) ?? InfiniteOffsets.Unknown;
             }
             catch (Exception ex)
             {
