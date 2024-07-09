@@ -8,7 +8,7 @@
         xmlns:game="clr-namespace:InfiniteTool.GameInterop"
         mc:Ignorable="d"
         TransparencyLevelHint="AcrylicBlur"
-        Background="rgba(0, 0, 0, 0.5)"
+        Background="rgba(0, 0, 0, 0.6)"
         ExtendClientAreaToDecorationsHint="True"
         Title="Infinite Tool" Height="450" Width="650"
         Icon="infinity.ico">

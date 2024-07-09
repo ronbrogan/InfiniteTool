@@ -42,7 +42,7 @@ namespace InfiniteTool
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public class ActionItem : BindableUiAction
     {
-        private readonly Action action;
+        private readonly Func<Task> action;
         private Func<bool>? toggleStatusFunc;
 
         private Brush defaultBrush = new SolidColorBrush(Color.FromArgb(51, 255, 255, 255));
@@ -52,7 +52,7 @@ namespace InfiniteTool
 
         public Expression<Func<GameContext, bool>>? Guard { get; set;}
 
-        public ActionItem(string label, string id, Action action, Func<bool>? toggleStatusFunc = null)
+        public ActionItem(string label, string id, Func<Task> action, Func<bool>? toggleStatusFunc = null)
         {
             this.Label = label;
             this.Id = id;
@@ -66,21 +66,21 @@ namespace InfiniteTool
             return this;
         }
 
-        public override void Invoke()
+        public override async Task Invoke()
         {
             if (!this.IsEnabled()) return;
 
-            InvokeRaw();
+            await InvokeRaw();
 
             if (toggleStatusFunc != null)
                 ToggleState = GetToggleState();
         }
 
-        public void InvokeRaw()
+        public async Task InvokeRaw()
         {
             try
             {
-                action();
+                await action();
             }
             catch { }
         }
@@ -193,7 +193,7 @@ namespace InfiniteTool
                 new("Suppress CPs", "toggleCheckpointSuppression", Instance.ToggleCheckpointSuppression, Instance.CheckpointsSuppressed),
                 new("Show Coords", "pancam", Instance.ToggleCoords, Instance.CoordsOn),
 
-                new("Reload Map", "mapReset", () => Instance.Engine.map_reset()),
+                new("Reload Map", "mapReset", async () => {using (var l = Instance.StartExclusiveOperation()) Instance.Engine.map_reset(); }),
             };
 
             Hacks = new()
@@ -283,29 +283,32 @@ namespace InfiniteTool
 
             while (!enforceTogglesCts.IsCancellationRequested)
             {
-                this.ProbablyInGame = Instance.ProbablyIsInGame();
-                this.Paused = Instance.IsPaused();
-                this.InCutscene = Instance.InCutscene();
-
-                foreach (var item in AllActionItems.Where(i => i.IsToggleAction))
+                using (var l = await Instance.StartExclusiveOperation())
                 {
-                    var gameState = item.GetToggleState();
+                    this.ProbablyInGame = Instance.ProbablyIsInGame();
+                    this.Paused = Instance.IsPaused();
+                    this.InCutscene = Instance.InCutscene();
 
-                    if (item.ToggleState != gameState)
+                    foreach (var item in AllActionItems.Where(i => i.IsToggleAction))
                     {
-                        // Force the game into our state if we should and we're not in cutscenes or whatever
-                        if (this.ShouldPersistToggles)
+                        var gameState = item.GetToggleState();
+
+                        if (item.ToggleState != gameState)
                         {
-                            if(this.ProbablyInGame && !this.InCutscene)
-                                item.InvokeRaw();
-                        }
-                        else
-                        {
-                            item.ToggleState = gameState; // otherwise reset us to reality
+                            // Force the game into our state if we should and we're not in cutscenes or whatever
+                            if (this.ShouldPersistToggles)
+                            {
+                                if (this.ProbablyInGame && !this.InCutscene)
+                                    item.InvokeRaw();
+                            }
+                            else
+                            {
+                                item.ToggleState = gameState; // otherwise reset us to reality
+                            }
                         }
                     }
                 }
-
+                
                 await Task.Delay(250);
             }
         }
@@ -320,37 +323,40 @@ namespace InfiniteTool
 
             while (!enforceEquipmentCts.IsCancellationRequested)
             {
-                this.ProbablyInGame = Instance.ProbablyIsInGame();
-                this.Paused = Instance.IsPaused();
-                this.InCutscene = Instance.InCutscene();
-
-                if (this.Instance.InMainMenu())
-                    lastRefreshTime = nint.MaxValue;
-
-                var curTime = this.Instance.Engine.Engine_GetCurrentTime();
-
-                if(ProbablyInGame && curTime < lastRefreshTime)
+                using(var l = await Instance.StartExclusiveOperation())
                 {
-                    var p = this.Persistence.GetEquipementRefreshPersistence();
+                    this.ProbablyInGame = Instance.ProbablyIsInGame();
+                    this.Paused = Instance.IsPaused();
+                    this.InCutscene = Instance.InCutscene();
 
-                    var walllevel = p.First(e => e.KeyName == "schematic_wall");
+                    if (this.Instance.InMainMenu())
+                        lastRefreshTime = nint.MaxValue;
 
-                    if (walllevel.GlobalValue != 0)
+                    var curTime = this.Instance.Engine.Engine_GetCurrentTime();
+
+                    if (ProbablyInGame && curTime < lastRefreshTime)
                     {
-                        // we should have dropwall
+                        var p = this.Persistence.GetEquipementRefreshPersistence();
 
-                        var player = this.Instance.Engine.player_get(0);
-                        var dropwallIndex = this.Instance.Engine.Unit_GetEquipmentIndexByAbilityType(player, 0);
+                        var walllevel = p.First(e => e.KeyName == "schematic_wall");
 
-                        if (dropwallIndex == -1)
+                        if (walllevel.GlobalValue != 0)
                         {
-                            // we don't have a dropwall tho
+                            // we should have dropwall
 
-                            await this.Persistence.RefreshEquipment();
+                            var player = this.Instance.Engine.player_get(0);
+                            var dropwallIndex = this.Instance.Engine.Unit_GetEquipmentIndexByAbilityType(player, 0);
+
+                            if (dropwallIndex == -1)
+                            {
+                                // we don't have a dropwall tho
+
+                                await this.Persistence.RefreshEquipment();
+                            }
                         }
-                    }
 
-                    this.lastRefreshTime = curTime;
+                        this.lastRefreshTime = curTime;
+                    }
                 }
 
                 await Task.Delay(250);

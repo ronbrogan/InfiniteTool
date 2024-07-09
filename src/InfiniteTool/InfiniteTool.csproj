@@ -49,7 +49,6 @@
 		<PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
 		<PackageReference Include="Superintendent.Core" Version="1.0.0" />
 		<PackageReference Include="Superintendent.Generation" Version="1.0.0">
-			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
 

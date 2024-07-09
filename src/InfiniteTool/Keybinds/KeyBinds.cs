@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace InfiniteTool.Keybinds
 {
@@ -15,7 +16,7 @@ namespace InfiniteTool.Keybinds
         string Label { get; set; }
         string KeyBind { get; set; }
 
-        void Invoke();
+        Task Invoke();
     }
 
     [AddINotifyPropertyChangedInterface]
@@ -34,7 +35,7 @@ namespace InfiniteTool.Keybinds
 
         public Func<bool> IsEnabled { get; set; }
 
-        public abstract void Invoke();
+        public abstract Task Invoke();
 
         public ContextMenu BindingContextMenu { get; set; }
     }
@@ -70,7 +71,7 @@ namespace InfiniteTool.Keybinds
         {
             if (bindings.TryGetValue(action.Id, out var binding))
             {
-                if (hotkeys.TryRegisterHotKey(binding.mods, binding.key, action.Invoke))
+                if (hotkeys.TryRegisterHotKey(binding.mods, binding.key, () => Task.Run(action.Invoke)))
                 {
                     action.KeyBind = Hotkeys.KeyToString(binding.mods, binding.key);
                 }
@@ -125,7 +126,7 @@ namespace InfiniteTool.Keybinds
                     action.KeyBind = null;
                 }
 
-                if (hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, action.Invoke))
+                if (hotkeys.TryRegisterHotKey(dialog.Data.ModifierKeys, dialog.Data.MainKey, () => Task.Run(action.Invoke)))
                 {
                     action.KeyBind = Hotkeys.KeyToString(dialog.Data.ModifierKeys, dialog.Data.MainKey);
                     bindings[action.Id] = (dialog.Data.ModifierKeys, dialog.Data.MainKey);

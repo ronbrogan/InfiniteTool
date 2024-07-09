@@ -135,14 +135,14 @@ namespace InfiniteTool.GameInterop
             return false;
         }
 
-        internal void TriggerCheckpoint()
+        internal async Task TriggerCheckpoint()
         {
-            Operation("Custom Checkpoint", () => Engine.game_save_fast());
+            await Operation("Custom Checkpoint", () => Engine.game_save_fast());
         }
 
-        internal void TriggerRevert()
+        internal async Task TriggerRevert()
         {
-            Operation("Reverting", () =>
+            await Operation("Reverting", () =>
             {
                 var player = Engine.player_get(0);
                 Engine.Object_SetObjectCannotTakeDamage(player, true);
@@ -151,9 +151,9 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void DoubleRevert()
+        public async Task DoubleRevert()
         {
-            Operation("Double reverting", () =>
+            await Operation("Double reverting", () =>
             {
                 var player = Engine.player_get(0);
                 Engine.Object_SetObjectCannotTakeDamage(player, true);
@@ -165,9 +165,9 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        internal void ToggleCheckpointSuppression()
+        internal async Task ToggleCheckpointSuppression()
         {
-            Operation("Toggling CP Suppression", () =>
+            await Operation("Toggling CP Suppression", () =>
             {
                 var cpInfo = Engine.ReadCheckpointInfo();
                 cpInfo.SuppressCheckpoints = (byte)(cpInfo.SuppressCheckpoints == 0 ? 1 : 0);
@@ -185,9 +185,9 @@ namespace InfiniteTool.GameInterop
             return cpInfo.SuppressCheckpoints == 1;
         }
 
-        internal void ToggleInvuln()
+        internal async Task ToggleInvuln()
         {
-            Operation("Toggling Invuln", () =>
+            await Operation("Toggling Invuln", () =>
             {
                 var invuln = PlayerIsInvulnerable() ? 0 : 1;
                 this.logger.LogInformation($"Invuln requested, val: {invuln}");
@@ -203,9 +203,9 @@ namespace InfiniteTool.GameInterop
             return Engine.Object_GetObjectCannotTakeDamage(player);
         }
 
-        public void RestockPlayer()
+        public async Task RestockPlayer()
         {
-            Operation("Restocking player", () =>
+            await Operation("Restocking player", () =>
             {
                 var player = Engine.player_get(0);
                 Engine.Unit_RefillAmmo(player);
@@ -216,9 +216,9 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void UnlockAllEquipment()
+        public async Task UnlockAllEquipment()
         {
-            Operation("Unlocking All Equipment", () =>
+            await Operation("Unlocking All Equipment", () =>
             {
                 var stringAddr = this.allocator.Allocate(8);
                 var resultAddr = this.allocator.Allocate(8);
@@ -256,9 +256,9 @@ namespace InfiniteTool.GameInterop
             }
         }
 
-        public void ResetAllEquipment()
+        public async Task ResetAllEquipment()
         {
-            Operation("Resetting Equipment Levels", () =>
+            await Operation("Resetting Equipment Levels", () =>
             {
                 var stringAddr = this.allocator.Allocate(8);
                 var resultAddr = this.allocator.Allocate(8);
@@ -276,9 +276,9 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void SetEquipmentPoints(int value)
+        public async Task SetEquipmentPoints(int value)
         {
-            Operation($"Setting Equipment Points to {value}", () =>
+            await Operation($"Setting Equipment Points to {value}", () =>
             {
                 var stringAddr = this.allocator.Allocate(8);
                 var resultAddr = this.allocator.Allocate(8);
@@ -293,7 +293,7 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void SpawnWeapon(TagInfo weapon)
+        public async Task SpawnWeapon(TagInfo weapon)
         {
             // Our func takes these 'global' tag IDs, but will only succeed if they're
             // available in the 'tag translation table' (as I'm calling it)
@@ -304,7 +304,7 @@ namespace InfiniteTool.GameInterop
 
             var name = Path.GetFileNameWithoutExtension(weapon.Name);
 
-            Operation($"Weapon Requested: {name}", () =>
+            await Operation($"Weapon Requested: {name}", () =>
             {
                 var player = Engine.player_get(0);
                 var created = Engine.Object_PlaceTagAtObjectLocation(weapon.Id, player);
@@ -316,7 +316,7 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void SpawnVehicle(TagInfo vehicle)
+        public async Task SpawnVehicle(TagInfo vehicle)
         {
             // Our func takes these 'global' tag IDs, but will only succeed if they're
             // available in the 'tag translation table' (as I'm calling it)
@@ -327,7 +327,7 @@ namespace InfiniteTool.GameInterop
 
             var name = Path.GetFileNameWithoutExtension(vehicle.Name);
 
-            Operation($"Vehicle Requested: {name}", () =>
+            await Operation($"Vehicle Requested: {name}", () =>
             {
                 var player = Engine.player_get(0);
                 var created = Engine.Object_PlaceTagAtObjectLocation(vehicle.Id, player);
@@ -339,7 +339,7 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        public void SpawnBiped(TagInfo character)
+        public async Task SpawnBiped(TagInfo character)
         {
             // Our func takes these 'global' tag IDs, but will only succeed if they're
             // available in the 'tag translation table' (as I'm calling it)
@@ -350,7 +350,7 @@ namespace InfiniteTool.GameInterop
 
             var name = Path.GetFileNameWithoutExtension(character.Name);
 
-            Operation($"Biped Requested: {name}", () =>
+            await Operation($"Biped Requested: {name}", () =>
             {
                 var player = Engine.player_get(0);
                 var created = Engine.Object_PlaceTagAtObjectLocation(character.Id, player);
@@ -362,10 +362,10 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        internal void ToggleGameTimePause()
+        internal async Task ToggleGameTimePause()
         {
             var pauseState = GameTimeIsPaused();
-            Operation(!pauseState ? "Freezing time" : "Thawing time", () =>
+            await Operation(!pauseState ? "Freezing time" : "Thawing time", () =>
             {
                 Engine.Game_TimeSetPaused(!pauseState);
             });
@@ -378,10 +378,10 @@ namespace InfiniteTool.GameInterop
             return timeGlobals.Suspended == 0x0040;
         }
 
-        internal void ToggleAi()
+        internal async Task ToggleAi()
         {
             var enable = AiDisabled();
-            Operation(enable ? "AI enabled" : "AI disabled", () =>
+            await Operation(enable ? "AI enabled" : "AI disabled", () =>
             {
                 Engine.ai_enable(enable);
             });
@@ -392,18 +392,18 @@ namespace InfiniteTool.GameInterop
             return !Engine.ai_enabled();
         }
 
-        internal void NukeAi()
+        internal async Task NukeAi()
         {
-            _ = Operation("Dropping nuke", async () =>
+            await Operation("Dropping nuke", async () =>
             {
                 await Task.Delay(500);
                 Engine.ai_kill_all();
             });
         }
 
-        internal void ToggleSkull(string name, int id)
+        internal async Task ToggleSkull(string name, int id)
         {
-            _ = Operation($"Toggling skull {name}", async () =>
+            await Operation($"Toggling skull {name}", async () =>
             {
                 var en = this.Engine.is_skull_active(id);
                 this.Engine.skull_enable(id, !en);
@@ -762,8 +762,10 @@ namespace InfiniteTool.GameInterop
             Dispose(disposing: true);
         }
 
-        private void Operation(string message, Action func, string? log = null)
+        private async Task Operation(string message, Action func, string? log = null)
         {
+            using var l = await StartExclusiveOperation();
+
             log ??= message;
             this.logger.LogInformation($"UserOperation: {log}");
             this.PrepareForScriptCalls();
@@ -820,9 +822,9 @@ namespace InfiniteTool.GameInterop
             }
         }
 
-        internal void ForceSkipCutscene()
+        internal async Task ForceSkipCutscene()
         {
-            Operation("Skipping CS", () => this.Engine.composer_debug_cinematic_skip(), "Skip cutscene requested");
+            await Operation("Skipping CS", () => this.Engine.composer_debug_cinematic_skip(), "Skip cutscene requested");
         }
 
         internal void ResetOrLaunchMap(uint? loadedMapId, uint? loadedSpawnId)
@@ -843,10 +845,10 @@ namespace InfiniteTool.GameInterop
             }
         }
 
-        internal void TogglePlayerNoClip()
+        internal async Task TogglePlayerNoClip()
         {
             var val = PlayerNoClip();
-            Operation($"Noclip [{(!val ? "ON" : "OFF")}]", () =>
+            await Operation($"Noclip [{(!val ? "ON" : "OFF")}]", () =>
             {
                 var player = Engine.player_get(0);
                 Engine.object_set_physics(player, val);
@@ -868,10 +870,10 @@ namespace InfiniteTool.GameInterop
             return (flags & 0x100) != 0;
         }
 
-        internal void ToggleSlowMo()
+        internal async Task ToggleSlowMo()
         {
             var val = SlowMoActivated();
-            Operation($"SlowMo [{(!val ? "ON" : "OFF")}]", () =>
+            await Operation($"SlowMo [{(!val ? "ON" : "OFF")}]", () =>
             {
                 var addr = Engine.GetGameTimeGlobalsAddress();
                 this.RemoteProcess.WriteAt<float>(addr + GameTimeGlobals.TickRateReciprocalOffset, val ? 1f/60f : 1f / 120f);
@@ -884,10 +886,10 @@ namespace InfiniteTool.GameInterop
             return timeGlobals.TickRateReciprocal < 0.016f;
         }
 
-        internal void ToggleFastMo()
+        internal async Task ToggleFastMo()
         {
             var val = FastMoActivated();
-            Operation($"FastMo [{(!val ? "ON" : "OFF")}]", () =>
+            await Operation($"FastMo [{(!val ? "ON" : "OFF")}]", () =>
             {
                 var addr = Engine.GetGameTimeGlobalsAddress();
                 this.RemoteProcess.WriteAt<float>(addr + GameTimeGlobals.GameTimeMultiplierOffset, val ? 1 : 3);
@@ -900,10 +902,10 @@ namespace InfiniteTool.GameInterop
             return timeGlobals.GameTimeMultiplier > 1;
         }
 
-        internal void ToggleCoords()
+        internal async Task ToggleCoords()
         {
             var val = CoordsOn();
-            Operation($"Pancam [{(!val ? "ON" : "OFF")}]", () =>
+            await Operation($"Pancam [{(!val ? "ON" : "OFF")}]", () =>
             {
                 var start = this.Engine.GetGameStateFlagsBase();
                 this.RemoteProcess.WriteAt<byte>(start + this.offsets.CheatsEnabledOffset, 1);
@@ -946,10 +948,10 @@ namespace InfiniteTool.GameInterop
             });
         }
 
-        internal void ToggleFlyCam()
+        internal async Task ToggleFlyCam()
         {
             var val = FlycamEnabled();
-            Operation($"Flycam [{(!val ? "ON" : "OFF")}]", () =>
+            await Operation($"Flycam [{(!val ? "ON" : "OFF")}]", () =>
             {
                 var start = this.Engine.GetGameStateFlagsBase();
                 this.RemoteProcess.WriteAt<byte>(start + this.offsets.CheatsEnabledOffset, 1);
@@ -962,6 +964,30 @@ namespace InfiniteTool.GameInterop
         internal bool FlycamEnabled()
         {
             return this.Engine.FlycamIsEnabled();
+        }
+
+
+        SemaphoreSlim operationSemaphore = new SemaphoreSlim(1, 1);
+        internal async Task<IDisposable> StartExclusiveOperation()
+        {
+            await operationSemaphore.WaitAsync();
+
+            return new OperationScope(operationSemaphore);
+        }
+
+        private class OperationScope : IDisposable
+        {
+            private SemaphoreSlim operationSemaphore;
+
+            public OperationScope(SemaphoreSlim operationSemaphore)
+            {
+                this.operationSemaphore = operationSemaphore;
+            }
+
+            public void Dispose()
+            {
+                operationSemaphore.Release();
+            }
         }
     }
 }
