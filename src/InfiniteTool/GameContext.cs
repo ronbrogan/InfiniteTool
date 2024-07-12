@@ -10,6 +10,7 @@ using InfiniteTool.Credentials;
 using InfiniteTool.Extensions;
 using InfiniteTool.Formats;
 using InfiniteTool.GameInterop;
+using InfiniteTool.GameInterop.Internal;
 using InfiniteTool.Keybinds;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
@@ -21,6 +22,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using static InfiniteTool.GameInterop.GamePersistence;
@@ -110,6 +112,7 @@ namespace InfiniteTool
     public class GameContext
     {
         private readonly ILogger<GameContext> logger;
+        private ArenaAllocator allocator;
 
         public GameInstance Instance { get; private set; }
         public GamePersistence Persistence { get; private set; }
@@ -132,6 +135,8 @@ namespace InfiniteTool
 
         public ObservableCollection<ActionItem> Hacks { get; set; }
 
+        public string PlayerVelocity { get; set; }
+
         public bool ProbablyInGame { get; set; }
         public bool Paused { get; set; }
         public bool InCutscene { get; set; }
@@ -140,6 +145,8 @@ namespace InfiniteTool
         public bool MapResetOnLoad { get; set; } = true;
 
         public bool ShouldPersistToggles { get; set; }
+
+        public bool ShouldEnforceEquipment { get; set; }
 
         public bool AdvancedMode { get; set; }
 
@@ -193,7 +200,7 @@ namespace InfiniteTool
                 new("Suppress CPs", "toggleCheckpointSuppression", Instance.ToggleCheckpointSuppression, Instance.CheckpointsSuppressed),
                 new("Show Coords", "pancam", Instance.ToggleCoords, Instance.CoordsOn),
 
-                new("Reload Map", "mapReset", async () => {using (var l = Instance.StartExclusiveOperation()) Instance.Engine.map_reset(); }),
+                new("Reload Map", "mapReset", async () => {using (var l = await Instance.StartExclusiveOperation()) Instance.Engine.map_reset(); }),
             };
 
             Hacks = new()
@@ -220,8 +227,7 @@ namespace InfiniteTool
 
         private void Instance_BeforeDetach(object? sender, EventArgs e)
         {
-            enforceTogglesCts.Cancel();
-            enforceEquipmentCts.Cancel();
+            periodicActionsCts.Cancel();
             Dispatcher.UIThread.Invoke(() =>
             {
                 this.HasProcess = false;
@@ -233,9 +239,9 @@ namespace InfiniteTool
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 this.HasProcess = true;
+                this.allocator = new ArenaAllocator(this.Instance.RemoteProcess, 4 * 1024 * 1024); // 4MB working area
                 this.LoadToggleStates();
-                _ = EnforceToggleStates();
-                _ = EnforceEquipmentUnlocks();
+                _ = PeriodicLoop();
             });
         }
 
@@ -274,98 +280,122 @@ namespace InfiniteTool
 
         // this is called while the tool is running to ensure that any toggles the
         // user has enabled are not reset by reverts, etc
-        private CancellationTokenSource enforceTogglesCts = new();
-        private async Task EnforceToggleStates()
+        private nint lastRefreshTime = nint.MaxValue;
+        private CancellationTokenSource periodicActionsCts = new();
+        private DateTimeOffset lastToggleRefresh = DateTimeOffset.MinValue;
+
+        private async Task PeriodicLoop()
         {
-            enforceTogglesCts = new CancellationTokenSource();
+            periodicActionsCts = new CancellationTokenSource();
 
             await Task.Delay(250);
 
-            while (!enforceTogglesCts.IsCancellationRequested)
+            while (!periodicActionsCts.IsCancellationRequested)
             {
+                await Task.Delay(100);
+
                 using (var l = await Instance.StartExclusiveOperation())
                 {
                     this.ProbablyInGame = Instance.ProbablyIsInGame();
                     this.Paused = Instance.IsPaused();
                     this.InCutscene = Instance.InCutscene();
-
-                    foreach (var item in AllActionItems.Where(i => i.IsToggleAction))
-                    {
-                        var gameState = item.GetToggleState();
-
-                        if (item.ToggleState != gameState)
-                        {
-                            // Force the game into our state if we should and we're not in cutscenes or whatever
-                            if (this.ShouldPersistToggles)
-                            {
-                                if (this.ProbablyInGame && !this.InCutscene)
-                                    item.InvokeRaw();
-                            }
-                            else
-                            {
-                                item.ToggleState = gameState; // otherwise reset us to reality
-                            }
-                        }
-                    }
-                }
-                
-                await Task.Delay(250);
-            }
-        }
-
-        private nint lastRefreshTime = nint.MaxValue;
-        private CancellationTokenSource enforceEquipmentCts = new();
-        private async Task EnforceEquipmentUnlocks()
-        {
-            enforceTogglesCts = new CancellationTokenSource();
-
-            await Task.Delay(250);
-
-            while (!enforceEquipmentCts.IsCancellationRequested)
-            {
-                using(var l = await Instance.StartExclusiveOperation())
-                {
-                    this.ProbablyInGame = Instance.ProbablyIsInGame();
-                    this.Paused = Instance.IsPaused();
-                    this.InCutscene = Instance.InCutscene();
-
-                    if (this.Instance.InMainMenu())
-                        lastRefreshTime = nint.MaxValue;
-
                     var curTime = this.Instance.Engine.Engine_GetCurrentTime();
 
-                    if (ProbablyInGame && curTime < lastRefreshTime)
+                    if (this.Instance.InMainMenu() || curTime == 0)
                     {
-                        var p = this.Persistence.GetEquipementRefreshPersistence();
+                        lastRefreshTime = nint.MaxValue;
+                        continue;
+                    }
 
-                        var walllevel = p.First(e => e.KeyName == "schematic_wall");
+                    var player = this.Instance.Engine.player_get(0);
 
-                        if (walllevel.GlobalValue != 0)
-                        {
-                            // we should have dropwall
-
-                            var player = this.Instance.Engine.player_get(0);
-                            var dropwallIndex = this.Instance.Engine.Unit_GetEquipmentIndexByAbilityType(player, 0);
-
-                            if (dropwallIndex == -1)
-                            {
-                                // we don't have a dropwall tho
-
-                                await this.Persistence.RefreshEquipment();
-                            }
-                        }
+                    if (ProbablyInGame && curTime < lastRefreshTime && this.ShouldEnforceEquipment)
+                    {
+                        await EnforceEquipment(player);
 
                         this.lastRefreshTime = curTime;
                     }
+
+                    // limit toggle refresh rate
+                    if(DateTimeOffset.UtcNow - lastToggleRefresh > TimeSpan.FromMilliseconds(250))
+                    {
+                        PersistToggleStates();
+                        lastToggleRefresh = DateTimeOffset.UtcNow;
+                    }
+
+                    UpdateStates(player);
                 }
 
-                await Task.Delay(250);
+            }
+
+            void UpdateStates(nint player)
+            {
+                if (this.allocator == null)
+                    return;
+
+                var velocityLoc = this.allocator.Allocate(sizeof(float) * 4);
+
+                this.Instance.Engine.ObjectGetVelocity(velocityLoc, player);
+
+                Span<float> v = stackalloc float[3];
+                this.Instance.RemoteProcess.ReadSpanAt<float>(velocityLoc, v);
+
+                this.PlayerVelocity = $"<{v[0]:0.0}, {v[1]:0.0}, {v[2]:0.0}>";
+
+                this.allocator.Reclaim(zero: true);
+            }
+
+            async Task EnforceEquipment(nint player)
+            {
+                var p = this.Persistence.GetEquipementRefreshPersistence();
+
+                var walllevel = p.First(e => e.KeyName == "schematic_wall");
+
+                if (walllevel.GlobalValue != 0)
+                {
+                    // we should have dropwall
+                    var dropwallIndex = this.Instance.Engine.Unit_GetEquipmentIndexByAbilityType(player, 0);
+
+                    if (dropwallIndex == -1)
+                    {
+                        // we don't have a dropwall tho
+
+                        await this.Persistence.RefreshEquipment();
+                    }
+                }
+            }
+
+            void PersistToggleStates()
+            {
+                foreach (var item in AllActionItems.Where(i => i.IsToggleAction))
+                {
+                    var gameState = item.GetToggleState();
+
+                    if (item.ToggleState != gameState)
+                    {
+                        // Force the game into our state if we should and we're not in cutscenes or whatever
+                        if (this.ShouldPersistToggles)
+                        {
+                            if (this.ProbablyInGame && !this.InCutscene)
+                                item.InvokeRaw();
+                        }
+                        else
+                        {
+                            item.ToggleState = gameState; // otherwise reset us to reality
+                        }
+                    }
+                }
             }
         }
 
         public void ToggleShouldPersistToggles()
         {
             this.ShouldPersistToggles = !this.ShouldPersistToggles;
+        }
+
+        public void ToggleShouldEnforceEquipment()
+        {
+            this.ShouldEnforceEquipment = !this.ShouldEnforceEquipment;
         }
 
         public void ClearInfiniteCreds()

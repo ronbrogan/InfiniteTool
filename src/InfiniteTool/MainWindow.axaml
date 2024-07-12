@@ -36,6 +36,11 @@
 						<CheckBox IsChecked="{Binding ShouldPersistToggles}"/>
 					</MenuItem.Icon>
 				</MenuItem>
+				<MenuItem Header="Auto-Refresh Missing Equipment" Command="{Binding ToggleShouldEnforceEquipment}" ToolTip.Tip="Equipment that's not on levels by default can fail to load, so this'll refresh if the tool detects this happening. Can be sus, so off by default">
+					<MenuItem.Icon>
+						<CheckBox IsChecked="{Binding ShouldEnforceEquipment}"/>
+					</MenuItem.Icon>
+				</MenuItem>
 				<MenuItem Header="Advanced Mode" PointerReleased="ToggleAdvancedMode" ToolTip.Tip="Toys that can easily crash the game">
 					<MenuItem.Icon>
 						<CheckBox IsChecked="{Binding AdvancedMode}"/>
@@ -76,6 +81,13 @@
 				<TextBlock.Text>
 					<MultiBinding StringFormat="{}Paused: {0}">
 						<Binding Path="Paused" Mode="OneWay" />
+					</MultiBinding>
+				</TextBlock.Text>
+			</TextBlock>
+			<TextBlock Margin="20 0 0 0">
+				<TextBlock.Text>
+					<MultiBinding StringFormat="{}Vel: {0}">
+						<Binding Path="PlayerVelocity" Mode="OneWay" />
 					</MultiBinding>
 				</TextBlock.Text>
 			</TextBlock>
@@ -264,7 +276,7 @@
 
                 </DockPanel>
             </TabItem>
-            <TabItem Header="Dump" IsVisible="{Binding ReallyAdvancedMode}">
+            <!--<TabItem Header="Dump" IsVisible="{Binding ReallyAdvancedMode}">
                 <DockPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
@@ -274,7 +286,7 @@
                     </DockPanel>
 
                 </DockPanel>
-            </TabItem>
+            </TabItem>-->
         </TabControl>
         
     </DockPanel>

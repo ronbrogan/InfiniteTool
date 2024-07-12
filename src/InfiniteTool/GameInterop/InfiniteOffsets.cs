@@ -109,6 +109,9 @@ namespace InfiniteTool
 
         public Fun<nint> Engine_GetCurrentTime { get; set; }
 
+        [ParamNames("ptrToVector3", "player")]
+        public FunVoid<nint, nint> ObjectGetVelocity { get; set; }
+
         [ParamNames("player", "equipmentType")]
         public Fun<nint, int, int> Unit_GetEquipmentIndexByAbilityType { get; set; }
 

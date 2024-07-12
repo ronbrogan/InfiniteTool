@@ -29,6 +29,7 @@
   "object_set_physics": "0x02ea1dc0",
   "ResolveObjectPointer": "0x3c2d14",
   "RestartMission": "0x297758c",
+  "ObjectGetVelocity": "0x00e65258",
 
   "RuntimePersistence": [ "0x04B325E8", "0x18", "0xE100" ],
 
