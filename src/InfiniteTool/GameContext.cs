@@ -19,10 +19,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using static InfiniteTool.GameInterop.GamePersistence;
@@ -284,6 +287,8 @@ namespace InfiniteTool
         private CancellationTokenSource periodicActionsCts = new();
         private DateTimeOffset lastToggleRefresh = DateTimeOffset.MinValue;
 
+        private nint velocityLocation = nint.MaxValue;
+
         private async Task PeriodicLoop()
         {
             periodicActionsCts = new CancellationTokenSource();
@@ -323,7 +328,8 @@ namespace InfiniteTool
                         lastToggleRefresh = DateTimeOffset.UtcNow;
                     }
 
-                    UpdateStates(player);
+                    // Velocity reading randomly hangs game ???
+                    //UpdateStates(player);
                 }
 
             }
@@ -333,16 +339,15 @@ namespace InfiniteTool
                 if (this.allocator == null)
                     return;
 
-                var velocityLoc = this.allocator.Allocate(sizeof(float) * 4);
+                if (velocityLocation == nint.MaxValue)
+                    velocityLocation = this.allocator.Allocate(sizeof(float) * 4);
 
-                this.Instance.Engine.ObjectGetVelocity(velocityLoc, player);
+                this.Instance.Engine.ObjectGetVelocity(velocityLocation, player);
 
                 Span<float> v = stackalloc float[3];
-                this.Instance.RemoteProcess.ReadSpanAt<float>(velocityLoc, v);
+                this.Instance.RemoteProcess.ReadSpanAt<float>(velocityLocation, v);
 
                 this.PlayerVelocity = $"<{v[0]:0.0}, {v[1]:0.0}, {v[2]:0.0}>";
-
-                this.allocator.Reclaim(zero: true);
             }
 
             async Task EnforceEquipment(nint player)

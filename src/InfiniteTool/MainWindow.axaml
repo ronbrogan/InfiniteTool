@@ -84,13 +84,13 @@
 					</MultiBinding>
 				</TextBlock.Text>
 			</TextBlock>
-			<TextBlock Margin="20 0 0 0">
+			<!--<TextBlock Margin="20 0 0 0">
 				<TextBlock.Text>
 					<MultiBinding StringFormat="{}Vel: {0}">
 						<Binding Path="PlayerVelocity" Mode="OneWay" />
 					</MultiBinding>
 				</TextBlock.Text>
-			</TextBlock>
+			</TextBlock>-->
         </StackPanel>
         <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
             <TabItem Header="Actions">
