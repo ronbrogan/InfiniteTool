@@ -48,7 +48,6 @@
 				</MenuItem>
             </MenuItem>
 			<MenuItem Header="Tools">
-				<MenuItem Header="Refresh Equipment" Command="{Binding RefreshEquipment}" ToolTip.Tip="Toggles all equipment flags to try to force the game to behave"></MenuItem>
 				<MenuItem Header="Export Infinite Credentials" Command="{Binding ExportInfiniteCreds}" ToolTip.Tip="Saves your login info to a file (in the tool's directory) - can be restored later or used for debugging"></MenuItem>
 				<MenuItem Header="Import Infinite Credentials" Command="{Binding ImportInfiniteCreds}" ToolTip.Tip="Loads a previously exported set of credentials into the Windows credential store"></MenuItem>
 				<MenuItem Header="!! Delete Infinite Credentials !!" Command="{Binding ClearInfiniteCreds}" ToolTip.Tip="Useful if you can't sign into the game. If you're downpatched, you'll have to log in with current patch again"></MenuItem>
@@ -84,6 +83,13 @@
 					</MultiBinding>
 				</TextBlock.Text>
 			</TextBlock>
+          <TextBlock Margin="20 0 0 0">
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{}TacMap: {0}">
+                <Binding Path="InTacMap" Mode="OneWay" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
 			<!--<TextBlock Margin="20 0 0 0">
 				<TextBlock.Text>
 					<MultiBinding StringFormat="{}Vel: {0}">

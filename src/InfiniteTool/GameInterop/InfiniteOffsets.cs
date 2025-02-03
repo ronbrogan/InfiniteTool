@@ -71,6 +71,8 @@ namespace InfiniteTool
 
         public Ptr<bool> InCageFlag { get; set; }
 
+        public Ptr<bool> TacMapClosedFlag { get; set; }
+
         public Fun<bool> game_save_is_valid { get; set; }
 
         public Fun<bool> composer_show_scene_is_playing { get; set; }

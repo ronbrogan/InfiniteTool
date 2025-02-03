@@ -111,8 +111,8 @@ namespace InfiniteTool.GameInterop
                 //if (Engine.composer_show_scene_is_playing())
                 //    return true;
 
-                if (Engine.cinematic_in_progress())
-                    return true;
+                //if (Engine.cinematic_in_progress())
+                //    return true;
 
                 if(Engine.ReadInCageFlag())
                     return true;
@@ -133,6 +133,12 @@ namespace InfiniteTool.GameInterop
             catch { }
 
             return false;
+        }
+
+        public bool IsInTacMap()
+        {
+            var closed = Engine.ReadTacMapClosedFlag();
+            return !closed;
         }
 
         internal async Task TriggerCheckpoint()
@@ -824,6 +830,8 @@ namespace InfiniteTool.GameInterop
 
         internal async Task ForceSkipCutscene()
         {
+            // small delay to avoid skipping too close to the start of the cutscene
+            await Task.Delay(60);
             await Operation("Skipping CS", () => this.Engine.composer_debug_cinematic_skip(), "Skip cutscene requested");
         }
 

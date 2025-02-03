@@ -23,6 +23,7 @@
   "composer_show_scene_is_playing": "0x00f4f77c",
   "cinematic_in_progress": "0x0042bc20",
   "InCageFlag": "0x4AF26B0",
+  "TacMapClosedFlag": "0x4173688",
   "Engine_GetCurrentTime": "0x2b1a214",
   "Level_IsCurrentNameEqual": "0x00d6335c",
   "map_reset": "0x02684cec",

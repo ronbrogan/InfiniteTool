@@ -142,6 +142,8 @@ namespace InfiniteTool
 
         public bool ProbablyInGame { get; set; }
         public bool Paused { get; set; }
+        public bool InTacMap { get; set; }
+        public bool NotInTacMap => !InTacMap;
         public bool InCutscene { get; set; }
         public bool HasProcess { get; set; }
 
@@ -195,14 +197,15 @@ namespace InfiniteTool
 
             Actions = new()
             {
-                new("Checkpont", "cp", Instance.TriggerCheckpoint),
-                new("Revert", "revert", Instance.TriggerRevert),
-                new("Double Revert", "doubleRevert", Instance.DoubleRevert),
+                new ActionItem("Checkpoint", "cp", Instance.TriggerCheckpoint).WithGuard(c => c.NotInTacMap),
+                new ActionItem("Revert", "revert", Instance.TriggerRevert).WithGuard(c => c.NotInTacMap),
+                new ActionItem("Double Revert", "doubleRevert", Instance.DoubleRevert).WithGuard(c => c.NotInTacMap),
 
                 new ActionItem("Skip Cutscene", "cutsceneSkip", Instance.ForceSkipCutscene).WithGuard(c => c.InCutscene),
                 new("Suppress CPs", "toggleCheckpointSuppression", Instance.ToggleCheckpointSuppression, Instance.CheckpointsSuppressed),
                 new("Show Coords", "pancam", Instance.ToggleCoords, Instance.CoordsOn),
 
+                new("Refresh Equipment", "refreshEquipment", () => Persistence.RefreshEquipment()),
                 new("Reload Map", "mapReset", async () => {using (var l = await Instance.StartExclusiveOperation()) Instance.Engine.map_reset(); }),
             };
 
@@ -303,6 +306,7 @@ namespace InfiniteTool
                 {
                     this.ProbablyInGame = Instance.ProbablyIsInGame();
                     this.Paused = Instance.IsPaused();
+                    this.InTacMap = Instance.IsInTacMap();
                     this.InCutscene = Instance.InCutscene();
                     var curTime = this.Instance.Engine.Engine_GetCurrentTime();
 
